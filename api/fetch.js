@@ -15,10 +15,9 @@ export default async function handler(req, res) {
     const raw = await r.json();
     const patrulleros = Array.isArray(raw) ? raw : (raw.patrulleros || []);
 
-    // Calcular operativo desde estado si no viene en los datos
     patrulleros.forEach(p => {
-      const estado = (p.estado || '').toUpperCase();
-      p.operativo = estado.includes('EN SERVICIO') || estado.includes('OPERATIVO');
+      const estado = String(p.estado || '').toUpperCase().trim();
+      p.operativo = estado === 'SI' || estado === 'S';
       if (!p.fallas) p.fallas = { gps: false, radio_base: false, dvr: false, camaras: false };
     });
 
