@@ -14,7 +14,13 @@ export default async function handler(req, res) {
     if (!ONEDRIVE_URL) {
       return res.status(500).json({ error: 'ONEDRIVE_URL no configurada' });
     }
-    const response = await fetch(ONEDRIVE_URL);
+    const response = await fetch(ONEDRIVE_URL, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*'
+      },
+      redirect: 'follow'
+    });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const buffer = await response.arrayBuffer();
     const workbook = XLSX.read(buffer, { type: 'array' });
@@ -27,7 +33,7 @@ export default async function handler(req, res) {
       if (!workbook.SheetNames.includes(sheetName)) continue;
       const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       for (const row of rows) {
-        const movil = String(row['MÓVIL'] || row['Móvil'] || row['movil'] || '').trim();
+        const movil = String(row['MOVIL'] || row['MÓVIL'] || row['Móvil'] || row['movil'] || '').trim();
         const estado = String(row['ESTADO OPERATIVO'] || row['Estado'] || '').toUpperCase();
         if (movil && movil !== 'NAN') {
           const esOperativo = estado.includes('EN SERVICIO') || estado.includes('OPERATIVO');
