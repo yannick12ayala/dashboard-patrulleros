@@ -14,6 +14,14 @@ export default async function handler(req, res) {
     if (!r.ok) throw new Error('datos.json no disponible');
     const raw = await r.json();
     const patrulleros = Array.isArray(raw) ? raw : (raw.patrulleros || []);
+
+    // Calcular operativo desde estado si no viene en los datos
+    patrulleros.forEach(p => {
+      const estado = (p.estado || '').toUpperCase();
+      p.operativo = estado.includes('EN SERVICIO') || estado.includes('OPERATIVO');
+      if (!p.fallas) p.fallas = { gps: false, radio_base: false, dvr: false, camaras: false };
+    });
+
     const datos = {
       patrulleros,
       resumen: {
