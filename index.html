@@ -9,7 +9,6 @@
         :root {
             --bg: #0b1320;
             --bg-elevated: #111b2d;
-            --bg-card: #14203570;
             --border: #1f2c44;
             --border-light: #2a3b59;
             --text: #e7ecf3;
@@ -130,6 +129,51 @@
             0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
             70% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
             100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+        }
+
+        /* ===== FILTER BAR ===== */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar .filter-label {
+            font-size: 0.75em;
+            color: var(--text-faint);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .filter-btn {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            color: var(--text-dim);
+            font-family: inherit;
+            font-size: 0.82em;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+
+        .filter-btn.active {
+            background: rgba(59,130,246,0.14);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .filter-btn .count {
+            opacity: 0.7;
+            font-weight: 400;
+            margin-left: 4px;
         }
 
         /* ===== KPIs ===== */
@@ -511,7 +555,6 @@
         }
 
         .grafico-container h3 {
-            color: var(--text);
             margin-bottom: 16px;
             font-size: 0.85em;
             font-weight: 600;
@@ -555,6 +598,14 @@
     </header>
 
     <div class="container">
+        <!-- Filtro por area -->
+        <div class="filter-bar" id="filterBar">
+            <span class="filter-label">Area:</span>
+            <button class="filter-btn active" data-area="todos">Todas <span class="count" id="countTodos"></span></button>
+            <button class="filter-btn" data-area="SECRETARIA">Secretaría <span class="count" id="countSecretaria"></span></button>
+            <button class="filter-btn" data-area="POLICIAL">Policial <span class="count" id="countPolicial"></span></button>
+        </div>
+
         <!-- KPIs -->
         <div class="kpi-container">
             <div class="kpi-card kpi-total">
@@ -608,7 +659,7 @@
                 </div>
                 <div class="search-box">
                     <span class="icon">🔎</span>
-                    <input type="text" id="buscarPatrullero" placeholder="Buscar por número, patente o área..." autocomplete="off">
+                    <input type="text" id="buscarPatrullero" placeholder="Buscar por numero, patente o area..." autocomplete="off">
                     <div class="search-results" id="searchResults"></div>
                 </div>
                 <div id="detallePatrullero" class="placeholder">
@@ -617,14 +668,14 @@
             </div>
         </div>
 
-        <!-- Gráficos -->
+        <!-- Graficos -->
         <div class="graficos">
             <div class="grafico-container">
                 <h3>Estado General</h3>
                 <canvas id="graficoEstado"></canvas>
             </div>
             <div class="grafico-container">
-                <h3>Por Área</h3>
+                <h3>Por Area</h3>
                 <canvas id="graficoArea"></canvas>
             </div>
         </div>
@@ -636,6 +687,40 @@
         let datosGlobal = null;
         let graficoEstado = null;
         let graficoArea = null;
+        let filtroArea = 'todos';
+
+        function normalizarArea(area) {
+            return (area || '')
+                .toUpperCase()
+                .normalize('NFD')
+                .replace(/[̀-ͯ]/g, '')
+                .trim();
+        }
+
+        function getPatrullerosFiltrados() {
+            if (!datosGlobal) return [];
+            if (filtroArea === 'todos') return datosGlobal.patrulleros;
+            return datosGlobal.patrulleros.filter(p => normalizarArea(p.area) === filtroArea);
+        }
+
+        function actualizarContadoresFiltro() {
+            if (!datosGlobal) return;
+            const todos = datosGlobal.patrulleros.length;
+            const secretaria = datosGlobal.patrulleros.filter(p => normalizarArea(p.area) === 'SECRETARIA').length;
+            const policial = datosGlobal.patrulleros.filter(p => normalizarArea(p.area) === 'POLICIAL').length;
+            document.getElementById('countTodos').textContent = todos;
+            document.getElementById('countSecretaria').textContent = secretaria;
+            document.getElementById('countPolicial').textContent = policial;
+        }
+
+        document.getElementById('filterBar').addEventListener('click', (e) => {
+            const btn = e.target.closest('.filter-btn');
+            if (!btn) return;
+            filtroArea = btn.dataset.area;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            actualizarDashboard();
+        });
 
         async function cargarDatos() {
             try {
@@ -652,7 +737,7 @@
         function mostrarError() {
             const listaDiv = document.getElementById('listaPatrulleros');
             listaDiv.innerHTML = `<div class="info-box">⚠️ No se pudo conectar con la fuente de datos.</div>`;
-            document.getElementById('lastUpdateText').textContent = 'Sin conexión';
+            document.getElementById('lastUpdateText').textContent = 'Sin conexion';
         }
 
         setInterval(cargarDatos, 5000);
@@ -666,26 +751,30 @@
 
         function actualizarDashboard() {
             if (!datosGlobal) return;
-            const resumen = datosGlobal.resumen;
 
-            document.getElementById('totalPatrulleros').textContent = resumen.total_general;
-            document.getElementById('operativos').textContent = resumen.total_operativos;
-            document.getElementById('noOperativos').textContent = resumen.total_no_operativos;
-            document.getElementById('noOperativosBadge').textContent = resumen.total_no_operativos;
+            actualizarContadoresFiltro();
+
+            const filtrados = getPatrullerosFiltrados();
+            const totalGeneral = filtrados.length;
+            const totalOperativos = filtrados.filter(p => p.operativo).length;
+            const totalNoOperativos = totalGeneral - totalOperativos;
+
+            document.getElementById('totalPatrulleros').textContent = totalGeneral;
+            document.getElementById('operativos').textContent = totalOperativos;
+            document.getElementById('noOperativos').textContent = totalNoOperativos;
+            document.getElementById('noOperativosBadge').textContent = totalNoOperativos;
             document.getElementById('lastUpdateText').textContent = formatearFecha(datosGlobal.lastUpdate);
 
-            const porcentaje = resumen.total_general > 0
-                ? Math.round((resumen.total_operativos / resumen.total_general) * 100)
-                : 0;
+            const porcentaje = totalGeneral > 0 ? Math.round((totalOperativos / totalGeneral) * 100) : 0;
             document.getElementById('porcentajeOperativo').textContent = porcentaje + '%';
 
-            actualizarListaPatrulleros();
-            actualizarGraficos();
+            actualizarListaPatrulleros(filtrados);
+            actualizarGraficos(filtrados);
         }
 
-        function actualizarListaPatrulleros() {
+        function actualizarListaPatrulleros(filtrados) {
             const lista = document.getElementById('listaPatrulleros');
-            const noOperativos = datosGlobal.patrulleros.filter(p => !p.operativo);
+            const noOperativos = filtrados.filter(p => !p.operativo);
 
             if (noOperativos.length === 0) {
                 lista.innerHTML = '<div class="info-box ok">✅ Todos los patrulleros están operativos</div>';
@@ -697,7 +786,7 @@
                     <div class="patrullero-numero">${p.numero}</div>
                     <div class="patrullero-info">
                         <strong>Tipo:</strong> ${p.tipo || '-'} &nbsp;·&nbsp;
-                        <strong>Área:</strong> ${p.area || '-'}<br>
+                        <strong>Area:</strong> ${p.area || '-'}<br>
                         <strong>Estado:</strong> ${p.estado || '-'}
                     </div>
                 </div>
@@ -734,9 +823,9 @@
                     <div class="info-row"><span class="label">Patente / Dominio</span><span class="value">${patrullero.placa || patrullero.numero || '-'}</span></div>
                     <div class="info-row"><span class="label">Marca / Modelo</span><span class="value">${(patrullero.marca || '-') + ' ' + (patrullero.modelo || '')}</span></div>
                     <div class="info-row"><span class="label">Tipo</span><span class="value">${patrullero.tipo || '-'}</span></div>
-                    <div class="info-row"><span class="label">Área</span><span class="value">${patrullero.area || '-'}</span></div>
+                    <div class="info-row"><span class="label">Area</span><span class="value">${patrullero.area || '-'}</span></div>
                     <div class="info-row"><span class="label">Titular</span><span class="value">${patrullero.titular || '-'}</span></div>
-                    <div class="info-row"><span class="label">Asignación</span><span class="value">${patrullero.asignacion || '-'}</span></div>
+                    <div class="info-row"><span class="label">Asignacion</span><span class="value">${patrullero.asignacion || '-'}</span></div>
                     <div class="info-row"><span class="label">N° Chasis / VIN</span><span class="value">${patrullero.serie || '-'}</span></div>
                     <div class="info-row"><span class="label">GPS (AVL)</span><span class="value">${patrullero.avl || '-'}</span></div>
                 </div>
@@ -748,7 +837,7 @@
                 { nombre: 'GPS', key: 'gps', icon: '📍' },
                 { nombre: 'Radio Base', key: 'radio_base', icon: '📡' },
                 { nombre: 'DVR', key: 'dvr', icon: '🎞️' },
-                { nombre: 'Cámaras', key: 'camaras', icon: '📷' }
+                { nombre: 'Camaras', key: 'camaras', icon: '📷' }
             ];
 
             return componentes.map(comp => {
@@ -785,7 +874,10 @@
             `;
         }
 
-        function actualizarGraficos() {
+        function actualizarGraficos(filtrados) {
+            const totalOperativos = filtrados.filter(p => p.operativo).length;
+            const totalNoOperativos = filtrados.length - totalOperativos;
+
             const ctxEstado = document.getElementById('graficoEstado').getContext('2d');
             if (graficoEstado) graficoEstado.destroy();
 
@@ -794,7 +886,7 @@
                 data: {
                     labels: ['Operativos', 'No Operativos'],
                     datasets: [{
-                        data: [datosGlobal.resumen.total_operativos, datosGlobal.resumen.total_no_operativos],
+                        data: [totalOperativos, totalNoOperativos],
                         backgroundColor: ['#22c55e', '#ef4444'],
                         borderColor: ['#111b2d', '#111b2d'],
                         borderWidth: 3
@@ -809,8 +901,8 @@
             });
 
             const areaConteo = {};
-            datosGlobal.patrulleros.forEach(p => {
-                const area = p.area || 'Sin área';
+            filtrados.forEach(p => {
+                const area = p.area || 'Sin area';
                 if (!areaConteo[area]) areaConteo[area] = { operativos: 0, total: 0 };
                 areaConteo[area].total++;
                 if (p.operativo) areaConteo[area].operativos++;
