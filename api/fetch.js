@@ -2,6 +2,33 @@ let lastData = null;
 let lastFetch = 0;
 const CACHE_TIME = 15000;
 
+function calcularFallas(p) {
+  const strix = String(p.strix || '').toUpperCase();
+  const soflex = String(p.soflex || '').toUpperCase();
+  const gpsOk = strix.includes('REPORTANDO') || soflex.includes('REPORTANDO');
+
+  const tieneRadio = String(p.radio_base || '').trim() !== '';
+  const estadoRadio = String(p.estado_radio || '').toUpperCase().trim();
+  const radioEstado = !tieneRadio ? 'no_asignado' : (estadoRadio === 'F/S' ? 'falla' : 'ok');
+
+  const tieneCamara = ['cctv', 'camara_externa', 'camara_interna'].some(
+    k => String(p[k] || '').toUpperCase().trim() === 'SI'
+  );
+  const estadoCamara = String(p.estado_camara || '').toUpperCase().trim();
+  const camarasEstado = !tieneCamara ? 'no_asignado' : (estadoCamara === 'F/S' ? 'falla' : 'ok');
+
+  const tieneBaliza = String(p.baliza || '').trim() !== '';
+  const estadoBaliza = String(p.estado_baliza || '').toUpperCase().trim();
+  const balizaEstado = !tieneBaliza ? 'no_asignado' : (estadoBaliza === 'F/S' ? 'falla' : 'ok');
+
+  return {
+    gps: gpsOk ? 'ok' : 'falla',
+    radio_base: radioEstado,
+    camaras: camarasEstado,
+    baliza: balizaEstado
+  };
+}
+
 export default async function handler(req, res) {
   try {
     const now = Date.now();
@@ -24,7 +51,15 @@ export default async function handler(req, res) {
     patrulleros.forEach(p => {
       const estado = String(p.estado || '').toUpperCase().trim();
       p.operativo = estado === 'ACTIVO' || estado === 'E/S';
-      if (!p.fallas) p.fallas = { gps: false, radio_base: false, dvr: false, camaras: false };
+      p.fallas = calcularFallas(p);
+    });
+
+    const sistemas = { gps: { ok: 0, falla: 0, no_asignado: 0 }, radio_base: { ok: 0, falla: 0, no_asignado: 0 }, camaras: { ok: 0, falla: 0, no_asignado: 0 }, baliza: { ok: 0, falla: 0, no_asignado: 0 } };
+    patrulleros.forEach(p => {
+      for (const key of ['gps', 'radio_base', 'camaras', 'baliza']) {
+        const estado = p.fallas[key] || 'ok';
+        sistemas[key][estado] = (sistemas[key][estado] || 0) + 1;
+      }
     });
 
     const datos = {
@@ -34,6 +69,7 @@ export default async function handler(req, res) {
         total_operativos: patrulleros.filter(p => p.operativo).length,
         total_no_operativos: patrulleros.filter(p => !p.operativo).length
       },
+      sistemas,
       lastUpdate: raw.lastUpdate || new Date().toISOString()
     };
     lastData = datos;
