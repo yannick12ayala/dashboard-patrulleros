@@ -1,6 +1,6 @@
 let lastData = null;
 let lastFetch = 0;
-const CACHE_TIME = 30000;
+const CACHE_TIME = 15000;
 
 export default async function handler(req, res) {
   try {
@@ -9,9 +9,15 @@ export default async function handler(req, res) {
       return res.status(200).json(lastData);
     }
     const r = await fetch(
-      `https://raw.githubusercontent.com/yannick12ayala/dashboard-patrulleros/main/datos.json?t=${now}`
+      'https://api.github.com/repos/yannick12ayala/dashboard-patrulleros/contents/datos.json',
+      {
+        headers: {
+          'Accept': 'application/vnd.github.v3.raw',
+          'User-Agent': 'dashboard-patrulleros'
+        }
+      }
     );
-    if (!r.ok) throw new Error('datos.json no disponible');
+    if (!r.ok) throw new Error(`GitHub API HTTP ${r.status}`);
     const raw = await r.json();
     const patrulleros = Array.isArray(raw) ? raw : (raw.patrulleros || []);
 
@@ -32,7 +38,7 @@ export default async function handler(req, res) {
     };
     lastData = datos;
     lastFetch = now;
-    res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
+    res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=30');
     res.status(200).json(datos);
   } catch (error) {
     if (lastData) return res.status(200).json(lastData);
