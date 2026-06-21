@@ -464,6 +464,12 @@
 
         .componente.falla .componente-estado { color: var(--danger); }
 
+        .componente.no-asignado {
+            border-color: var(--border-light);
+            background: transparent;
+        }
+        .componente.no-asignado .componente-estado { color: var(--text-faint); }
+
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -678,6 +684,10 @@
                 <h3>Por Area</h3>
                 <canvas id="graficoArea"></canvas>
             </div>
+            <div class="grafico-container" style="grid-column: 1 / -1;">
+                <h3>Estado de Sistemas (GPS · Radio Base · Camaras · Baliza)</h3>
+                <canvas id="graficoSistemas"></canvas>
+            </div>
         </div>
 
         <footer>Dashboard interno · Actualización automática vía Power Automate</footer>
@@ -687,6 +697,7 @@
         let datosGlobal = null;
         let graficoEstado = null;
         let graficoArea = null;
+        let graficoSistemas = null;
         let filtroArea = 'todos';
 
         function normalizarArea(area) {
@@ -836,17 +847,20 @@
             const componentes = [
                 { nombre: 'GPS', key: 'gps', icon: '📍' },
                 { nombre: 'Radio Base', key: 'radio_base', icon: '📡' },
-                { nombre: 'DVR', key: 'dvr', icon: '🎞️' },
-                { nombre: 'Camaras', key: 'camaras', icon: '📷' }
+                { nombre: 'Camaras', key: 'camaras', icon: '📷' },
+                { nombre: 'Baliza', key: 'baliza', icon: '🚨' }
             ];
 
+            const etiquetas = { ok: 'OK', falla: 'FALLA', no_asignado: 'NO ASIGNADO' };
+            const clases = { ok: '', falla: 'falla', no_asignado: 'no-asignado' };
+
             return componentes.map(comp => {
-                const tieneFalla = fallas[comp.key];
+                const estado = fallas[comp.key] || 'ok';
                 return `
-                    <div class="componente ${tieneFalla ? 'falla' : ''}">
+                    <div class="componente ${clases[estado]}">
                         <div class="componente-icon">${comp.icon}</div>
                         <div class="componente-label">${comp.nombre}</div>
-                        <div class="componente-estado">${tieneFalla ? 'FALLA' : 'OK'}</div>
+                        <div class="componente-estado">${etiquetas[estado]}</div>
                     </div>
                 `;
             }).join('');
@@ -929,6 +943,58 @@
                     scales: {
                         y: { beginAtZero: true, ticks: { color: '#5b6a85' }, grid: { color: '#1f2c44' } },
                         x: { ticks: { color: '#5b6a85', font: { size: 10 } }, grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#8593ab', font: { size: 12 }, padding: 16 } }
+                    }
+                }
+            });
+
+            actualizarGraficoSistemas(filtrados);
+        }
+
+        function actualizarGraficoSistemas(filtrados) {
+            const sistemasKeys = [
+                { key: 'gps', label: 'GPS' },
+                { key: 'radio_base', label: 'Radio Base' },
+                { key: 'camaras', label: 'Camaras' },
+                { key: 'baliza', label: 'Baliza' }
+            ];
+
+            const conteo = {};
+            sistemasKeys.forEach(s => { conteo[s.key] = { ok: 0, falla: 0, no_asignado: 0 }; });
+
+            filtrados.forEach(p => {
+                const f = p.fallas || {};
+                sistemasKeys.forEach(s => {
+                    const estado = f[s.key] || 'ok';
+                    conteo[s.key][estado] = (conteo[s.key][estado] || 0) + 1;
+                });
+            });
+
+            const labels = sistemasKeys.map(s => s.label);
+            const dataOk = sistemasKeys.map(s => conteo[s.key].ok);
+            const dataFalla = sistemasKeys.map(s => conteo[s.key].falla);
+            const dataNoAsignado = sistemasKeys.map(s => conteo[s.key].no_asignado);
+
+            const ctxSistemas = document.getElementById('graficoSistemas').getContext('2d');
+            if (graficoSistemas) graficoSistemas.destroy();
+
+            graficoSistemas = new Chart(ctxSistemas, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'OK', data: dataOk, backgroundColor: '#22c55e', borderWidth: 0, borderRadius: 3, stack: 's' },
+                        { label: 'Falla', data: dataFalla, backgroundColor: '#ef4444', borderWidth: 0, borderRadius: 3, stack: 's' },
+                        { label: 'No asignado', data: dataNoAsignado, backgroundColor: '#3b4a66', borderWidth: 0, borderRadius: 3, stack: 's' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, stacked: true, ticks: { color: '#5b6a85' }, grid: { color: '#1f2c44' } },
+                        x: { stacked: true, ticks: { color: '#8593ab' }, grid: { display: false } }
                     },
                     plugins: {
                         legend: { position: 'bottom', labels: { color: '#8593ab', font: { size: 12 }, padding: 16 } }
