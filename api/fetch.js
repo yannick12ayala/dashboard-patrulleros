@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
     patrulleros.forEach(p => {
       const estado = String(p.estado || '').toUpperCase().trim();
-      p.operativo = estado === 'SI' || estado === 'S';
+      p.operativo = estado === 'ACTIVO';
       if (!p.fallas) p.fallas = { gps: false, radio_base: false, dvr: false, camaras: false };
     });
 
