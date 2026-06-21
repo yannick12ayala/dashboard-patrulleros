@@ -830,6 +830,10 @@
                     ${componentesHTML}
                 </div>
 
+                <div class="componentes-grid" style="margin-top:-8px;">
+                    ${generarDetalleGPS(patrullero)}
+                </div>
+
                 <div class="info-grid">
                     <div class="info-row"><span class="label">Patente / Dominio</span><span class="value">${patrullero.placa || patrullero.numero || '-'}</span></div>
                     <div class="info-row"><span class="label">Marca / Modelo</span><span class="value">${(patrullero.marca || '-') + ' ' + (patrullero.modelo || '')}</span></div>
@@ -861,6 +865,27 @@
                         <div class="componente-icon">${comp.icon}</div>
                         <div class="componente-label">${comp.nombre}</div>
                         <div class="componente-estado">${etiquetas[estado]}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function generarDetalleGPS(patrullero) {
+            const sistemas = [
+                { nombre: 'STRIX', valor: patrullero.strix, icon: '🛰️' },
+                { nombre: 'SOFLEX', valor: patrullero.soflex, icon: '🛰️' }
+            ];
+
+            return sistemas.map(s => {
+                const valor = (s.valor || 'SIN DATOS').toString();
+                const ok = valor.toUpperCase().includes('REPORTANDO');
+                return `
+                    <div class="componente ${ok ? '' : 'falla'}" style="text-align:left; padding:12px 14px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <span class="componente-label" style="margin-bottom:0;">${s.icon} ${s.nombre}</span>
+                            <span class="componente-estado">${ok ? 'OK' : 'FALLA'}</span>
+                        </div>
+                        <div style="font-size:0.78em; color: var(--text-dim); margin-top:6px;">${valor}</div>
                     </div>
                 `;
             }).join('');
