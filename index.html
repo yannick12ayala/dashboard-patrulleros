@@ -588,6 +588,10 @@
             gap: 20px;
         }
 
+        .graficos-full {
+            grid-template-columns: 1fr;
+        }
+
         .grafico-container {
             background: var(--bg-elevated);
             border: 1px solid var(--border);
@@ -710,16 +714,12 @@
         </div>
 
         <!-- Graficos -->
-        <div class="graficos">
+        <div class="graficos graficos-full">
             <div class="grafico-container">
-                <h3>Estado General</h3>
-                <canvas id="graficoEstado"></canvas>
-            </div>
-            <div class="grafico-container" style="grid-column: 1 / -1;">
                 <h3>Estado de Sistemas (GPS · Radio Base · Camaras · Baliza)</h3>
                 <canvas id="graficoSistemas"></canvas>
             </div>
-            <div class="grafico-container" style="grid-column: 1 / -1;">
+            <div class="grafico-container">
                 <h3>Por Asignacion</h3>
                 <div style="height: 900px;">
                     <canvas id="graficoArea"></canvas>
@@ -732,7 +732,6 @@
 
     <script>
         let datosGlobal = null;
-        let graficoEstado = null;
         let graficoArea = null;
         let graficoSistemas = null;
         let filtroArea = 'todos';
@@ -986,39 +985,8 @@
         }
 
         function actualizarGraficos(filtrados) {
-            const totalOperativos = filtrados.filter(p => p.operativo).length;
-            const totalNoOperativos = filtrados.length - totalOperativos;
-
-            actualizarGraficoEstado(totalOperativos, totalNoOperativos);
             actualizarGraficoPorArea(filtrados);
             actualizarGraficoSistemas(filtrados);
-        }
-
-        function actualizarGraficoEstado(ok, falla) {
-            const ctx = document.getElementById('graficoEstado').getContext('2d');
-            if (!graficoEstado) {
-                graficoEstado = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Operativos', 'No Operativos'],
-                        datasets: [{
-                            data: [ok, falla],
-                            backgroundColor: ['#22c55e', '#ef4444'],
-                            borderColor: ['#111b2d', '#111b2d'],
-                            borderWidth: 3
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: { position: 'bottom', labels: { color: '#8593ab', font: { size: 12 }, padding: 16 } }
-                        }
-                    }
-                });
-            } else {
-                graficoEstado.data.datasets[0].data = [ok, falla];
-                graficoEstado.update();
-            }
         }
 
         function actualizarGraficoPorArea(filtrados) {
