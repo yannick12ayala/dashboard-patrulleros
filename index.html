@@ -410,65 +410,97 @@
             letter-spacing: 0.4px;
         }
 
-        .patrullero-imagen {
+        /* ===== DIAGRAMA RADIAL ===== */
+        .patrullero-diagrama {
             position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
             margin-bottom: 20px;
             background: linear-gradient(180deg, #0e1830, #0a1220);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            min-height: 220px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             overflow: hidden;
         }
 
-        .patrullero-imagen svg { width: 90%; height: 90%; max-height: 220px; }
-
-        .componentes-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
+        .patrullero-diagrama svg.conectores {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
         }
 
-        .componente {
-            padding: 14px;
-            border: 1px solid var(--success);
-            background: var(--success-bg);
-            border-radius: 9px;
-            text-align: center;
+        .vehiculo-central {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 34%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            animation: vehiculoIn 0.45s ease;
         }
 
-        .componente.falla {
-            border-color: var(--danger);
-            background: var(--danger-bg);
+        .vehiculo-central svg { width: 100%; display: block; }
+
+        .callout {
+            position: absolute;
+            width: 31%;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 9px 11px;
+            z-index: 3;
+            opacity: 0;
+            transform: scale(0.85) translateY(6px);
+            animation: calloutIn 0.4s ease forwards;
         }
 
-        .componente-icon { font-size: 1.3em; margin-bottom: 6px; }
+        .callout-tl { top: 6%; left: 4%; animation-delay: 0.05s; }
+        .callout-tr { top: 6%; right: 4%; animation-delay: 0.12s; }
+        .callout-bl { bottom: 6%; left: 4%; animation-delay: 0.19s; }
+        .callout-br { bottom: 6%; right: 4%; animation-delay: 0.26s; }
 
-        .componente-label {
-            font-weight: 600;
-            margin-bottom: 4px;
-            font-size: 0.78em;
-            letter-spacing: 0.4px;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-
-        .componente-estado {
-            font-size: 0.85em;
+        .callout-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.72em;
             font-weight: 700;
-            color: var(--success);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
         }
 
-        .componente.falla .componente-estado { color: var(--danger); }
-
-        .componente.no-asignado {
-            border-color: var(--border-light);
-            background: transparent;
+        .callout-estado { font-size: 0.78em; font-weight: 700; }
+        .callout-sub {
+            font-size: 0.68em;
+            color: var(--text-faint);
+            margin-top: 4px;
+            line-height: 1.4;
         }
-        .componente.no-asignado .componente-estado { color: var(--text-faint); }
+
+        .callout.ok { border-color: var(--success); }
+        .callout.ok .callout-estado { color: var(--success); }
+        .callout.falla { border-color: var(--danger); }
+        .callout.falla .callout-estado { color: var(--danger); }
+        .callout.no-asignado { border-color: var(--border-light); }
+        .callout.no-asignado .callout-estado { color: var(--text-faint); }
+
+        @keyframes calloutIn {
+            from { opacity: 0; transform: scale(0.85) translateY(6px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes vehiculoIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .detalle-entrando { animation: detalleFade 0.3s ease; }
+        @keyframes detalleFade {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .info-grid {
             display: grid;
@@ -812,83 +844,86 @@
             if (el) el.classList.add('selected');
 
             const svgPatrullero = generarSVGPatrullero(patrullero);
-            const componentesHTML = generarComponentes(patrullero.fallas || {});
+            const diagrama = generarDiagrama(patrullero);
 
             detalleDiv.innerHTML = `
-                <div class="detalle-header">
-                    <h3>${patrullero.numero}</h3>
-                    <div class="estado-badge ${patrullero.operativo ? 'operativo' : 'no-operativo'}">
-                        ${patrullero.operativo ? '✓ OPERATIVO' : '✗ NO OPERATIVO'}
+                <div class="detalle-entrando">
+                    <div class="detalle-header">
+                        <h3>${patrullero.numero}</h3>
+                        <div class="estado-badge ${patrullero.operativo ? 'operativo' : 'no-operativo'}">
+                            ${patrullero.operativo ? '✓ OPERATIVO' : '✗ NO OPERATIVO'}
+                        </div>
                     </div>
-                </div>
 
-                <div class="patrullero-imagen">
-                    ${svgPatrullero}
-                </div>
+                    <div class="patrullero-diagrama">
+                        <svg class="conectores" viewBox="0 0 100 75" preserveAspectRatio="none">
+                            ${diagrama.lineas}
+                        </svg>
+                        <div class="vehiculo-central">${svgPatrullero}</div>
+                        ${diagrama.callouts}
+                    </div>
 
-                <div class="componentes-grid">
-                    ${componentesHTML}
-                </div>
-
-                <div class="componentes-grid" style="margin-top:-8px;">
-                    ${generarDetalleGPS(patrullero)}
-                </div>
-
-                <div class="info-grid">
-                    <div class="info-row"><span class="label">Patente / Dominio</span><span class="value">${patrullero.placa || patrullero.numero || '-'}</span></div>
-                    <div class="info-row"><span class="label">Marca / Modelo</span><span class="value">${(patrullero.marca || '-') + ' ' + (patrullero.modelo || '')}</span></div>
-                    <div class="info-row"><span class="label">Tipo</span><span class="value">${patrullero.tipo || '-'}</span></div>
-                    <div class="info-row"><span class="label">Area</span><span class="value">${patrullero.area || '-'}</span></div>
-                    <div class="info-row"><span class="label">Titular</span><span class="value">${patrullero.titular || '-'}</span></div>
-                    <div class="info-row"><span class="label">Asignacion</span><span class="value">${patrullero.asignacion || '-'}</span></div>
-                    <div class="info-row"><span class="label">N° Chasis / VIN</span><span class="value">${patrullero.serie || '-'}</span></div>
-                    <div class="info-row"><span class="label">GPS (AVL)</span><span class="value">${patrullero.avl || '-'}</span></div>
+                    <div class="info-grid">
+                        <div class="info-row"><span class="label">Patente / Dominio</span><span class="value">${patrullero.placa || patrullero.numero || '-'}</span></div>
+                        <div class="info-row"><span class="label">Marca / Modelo</span><span class="value">${(patrullero.marca || '-') + ' ' + (patrullero.modelo || '')}</span></div>
+                        <div class="info-row"><span class="label">Tipo</span><span class="value">${patrullero.tipo || '-'}</span></div>
+                        <div class="info-row"><span class="label">Area</span><span class="value">${patrullero.area || '-'}</span></div>
+                        <div class="info-row"><span class="label">Titular</span><span class="value">${patrullero.titular || '-'}</span></div>
+                        <div class="info-row"><span class="label">Asignacion</span><span class="value">${patrullero.asignacion || '-'}</span></div>
+                        <div class="info-row"><span class="label">N° Chasis / VIN</span><span class="value">${patrullero.serie || '-'}</span></div>
+                        <div class="info-row"><span class="label">GPS (AVL)</span><span class="value">${patrullero.avl || '-'}</span></div>
+                    </div>
                 </div>
             `;
         }
 
-        function generarComponentes(fallas) {
-            const componentes = [
-                { nombre: 'GPS', key: 'gps', icon: '📍' },
-                { nombre: 'Radio Base', key: 'radio_base', icon: '📡' },
-                { nombre: 'Camaras', key: 'camaras', icon: '📷' },
-                { nombre: 'Baliza', key: 'baliza', icon: '🚨' }
-            ];
+        function generarDiagrama(patrullero) {
+            const f = patrullero.fallas || {};
+            const colorMap = { ok: '#22c55e', falla: '#ef4444', no_asignado: '#3b4a66' };
+            const labelMap = { ok: 'OK', falla: 'FALLA', no_asignado: 'NO ASIGNADO' };
+            const claseMap = { ok: 'ok', falla: 'falla', no_asignado: 'no-asignado' };
 
-            const etiquetas = { ok: 'OK', falla: 'FALLA', no_asignado: 'NO ASIGNADO' };
-            const clases = { ok: '', falla: 'falla', no_asignado: 'no-asignado' };
+            const gpsEstado = f.gps || 'ok';
+            const radioEstado = f.radio_base || 'no_asignado';
+            const camarasEstado = f.camaras || 'no_asignado';
+            const balizaEstado = f.baliza || 'no_asignado';
 
-            return componentes.map(comp => {
-                const estado = fallas[comp.key] || 'ok';
-                return `
-                    <div class="componente ${clases[estado]}">
-                        <div class="componente-icon">${comp.icon}</div>
-                        <div class="componente-label">${comp.nombre}</div>
-                        <div class="componente-estado">${etiquetas[estado]}</div>
-                    </div>
-                `;
-            }).join('');
-        }
+            const strixTxt = patrullero.strix || 'Sin datos';
+            const soflexTxt = patrullero.soflex || 'Sin datos';
+            const radioTxt = patrullero.radio_base || 'Sin equipo';
+            const tieneCamara = ['cctv', 'camara_externa', 'camara_interna'].some(
+                k => String(patrullero[k] || '').toUpperCase().trim() === 'SI'
+            );
+            const camarasTxt = tieneCamara ? (patrullero.sistema || 'Equipada') : 'Sin equipo';
+            const balizaTxt = patrullero.baliza || 'Sin equipo';
 
-        function generarDetalleGPS(patrullero) {
-            const sistemas = [
-                { nombre: 'STRIX', valor: patrullero.strix, icon: '🛰️' },
-                { nombre: 'SOFLEX', valor: patrullero.soflex, icon: '🛰️' }
-            ];
+            const lineas = `
+                <line x1="35" y1="9.75" x2="42" y2="30" stroke="${colorMap[gpsEstado]}" stroke-width="0.6" stroke-dasharray="2,1.5"/>
+                <line x1="65" y1="9.75" x2="58" y2="30" stroke="${colorMap[radioEstado]}" stroke-width="0.6" stroke-dasharray="2,1.5"/>
+                <line x1="35" y1="65.25" x2="42" y2="45" stroke="${colorMap[camarasEstado]}" stroke-width="0.6" stroke-dasharray="2,1.5"/>
+                <line x1="65" y1="65.25" x2="58" y2="45" stroke="${colorMap[balizaEstado]}" stroke-width="0.6" stroke-dasharray="2,1.5"/>
+            `;
 
-            return sistemas.map(s => {
-                const valor = (s.valor || 'SIN DATOS').toString();
-                const ok = valor.toUpperCase().includes('REPORTANDO');
-                return `
-                    <div class="componente ${ok ? '' : 'falla'}" style="text-align:left; padding:12px 14px;">
-                        <div style="display:flex; align-items:center; justify-content:space-between;">
-                            <span class="componente-label" style="margin-bottom:0;">${s.icon} ${s.nombre}</span>
-                            <span class="componente-estado">${ok ? 'OK' : 'FALLA'}</span>
-                        </div>
-                        <div style="font-size:0.78em; color: var(--text-dim); margin-top:6px;">${valor}</div>
-                    </div>
-                `;
-            }).join('');
+            const callouts = `
+                <div class="callout callout-tl ${claseMap[gpsEstado]}">
+                    <div class="callout-title"><span>📍 GPS</span><span class="callout-estado">${labelMap[gpsEstado]}</span></div>
+                    <div class="callout-sub">STRIX: ${strixTxt}<br>SOFLEX: ${soflexTxt}</div>
+                </div>
+                <div class="callout callout-tr ${claseMap[radioEstado]}">
+                    <div class="callout-title"><span>📡 Radio Base</span><span class="callout-estado">${labelMap[radioEstado]}</span></div>
+                    <div class="callout-sub">${radioTxt}</div>
+                </div>
+                <div class="callout callout-bl ${claseMap[camarasEstado]}">
+                    <div class="callout-title"><span>📷 Camaras</span><span class="callout-estado">${labelMap[camarasEstado]}</span></div>
+                    <div class="callout-sub">${camarasTxt}</div>
+                </div>
+                <div class="callout callout-br ${claseMap[balizaEstado]}">
+                    <div class="callout-title"><span>🚨 Baliza</span><span class="callout-estado">${labelMap[balizaEstado]}</span></div>
+                    <div class="callout-sub">${balizaTxt}</div>
+                </div>
+            `;
+
+            return { lineas, callouts };
         }
 
         function generarSVGPatrullero(patrullero) {
