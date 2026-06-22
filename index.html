@@ -759,7 +759,7 @@
             </div>
             <div class="grafico-container">
                 <h3>Por Asignacion</h3>
-                <div style="height: 900px;">
+                <div id="graficoAreaWrap" style="height: 400px;">
                     <canvas id="graficoArea"></canvas>
                 </div>
             </div>
@@ -1081,6 +1081,8 @@
             const labels = asignaciones.map(a => `${a} (${asigConteo[a].total})`);
             const datosOperativos = asignaciones.map(a => asigConteo[a].operativos);
             const datosNoOperativos = asignaciones.map(a => asigConteo[a].total - asigConteo[a].operativos);
+
+            document.getElementById('graficoAreaWrap').style.height = Math.max(300, labels.length * 24 + 60) + 'px';
 
             const ctx = document.getElementById('graficoArea').getContext('2d');
             if (!graficoArea) {
