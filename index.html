@@ -931,10 +931,13 @@
 
         function generarVisualVehiculo(patrullero) {
             const marca = (patrullero.marca || '').toUpperCase().trim();
+            const modelo = (patrullero.modelo || '').toUpperCase().trim();
             const area = normalizarArea(patrullero.area);
             let imagen = null;
 
-            if (marca === 'TOYOTA' && area !== 'POLICIAL') {
+            if (modelo === 'AMAROK' && area === 'POLICIAL') {
+                imagen = 'img/amarok_policial.png';
+            } else if (marca === 'TOYOTA' && area !== 'POLICIAL') {
                 imagen = 'img/toyota.png';
             } else if (marca === 'BENELLI') {
                 imagen = 'img/benelli.png';
