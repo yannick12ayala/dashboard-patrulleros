@@ -763,6 +763,26 @@
                     <canvas id="graficoArea"></canvas>
                 </div>
             </div>
+            <div class="grafico-container">
+                <h3>Equipos Base de Radio (<span id="equiposBaseTotal">0</span>)</h3>
+                <div class="kpi-container" style="margin: 0 0 20px;">
+                    <div class="kpi-card kpi-sistema">
+                        <div><div class="kpi-label">En Servicio</div><div class="kpi-value" id="equiposEnServicio">0</div></div>
+                    </div>
+                    <div class="kpi-card kpi-sistema">
+                        <div><div class="kpi-label">Fuera de Servicio</div><div class="kpi-value" id="equiposFueraServicio">0</div></div>
+                    </div>
+                    <div class="kpi-card kpi-sistema">
+                        <div><div class="kpi-label">Instalados</div><div class="kpi-value" id="equiposInstalados">0</div></div>
+                    </div>
+                    <div class="kpi-card kpi-sistema">
+                        <div><div class="kpi-label">En Deposito</div><div class="kpi-value" id="equiposEnDeposito">0</div></div>
+                    </div>
+                </div>
+                <div style="height: 320px;">
+                    <canvas id="graficoEquiposBase"></canvas>
+                </div>
+            </div>
         </div>
 
         <footer>Dashboard interno · Actualización automática vía Power Automate</footer>
@@ -1192,6 +1212,64 @@
             if (!e.target.closest('.search-box')) resultsDiv.classList.remove('active');
         });
 
+        // Datos de Equipos Base de Radio (manual por ahora, a futuro se conecta al Excel)
+        const EQUIPOS_BASE = {
+            total: 104,
+            enServicio: 100,
+            fueraDeServicio: 4,
+            instalados: 88,
+            enDeposito: 12,
+            distribucion: {
+                'GUARDIA URBANA': 54,
+                'DEFENSA CIVIL': 3,
+                'TRÁNSITO': 7,
+                'EDIFICIOS PÚBLICOS': 1,
+                'PBA': 10,
+                'UPPL': 1,
+                'MOVILIDAD': 4,
+                'MONITOREO': 8
+            }
+        };
+
+        function inicializarEquiposBase() {
+            const d = EQUIPOS_BASE;
+            document.getElementById('equiposBaseTotal').textContent = d.total;
+            document.getElementById('equiposEnServicio').textContent = d.enServicio;
+            document.getElementById('equiposFueraServicio').textContent = d.fueraDeServicio;
+            document.getElementById('equiposInstalados').textContent = d.instalados;
+            document.getElementById('equiposEnDeposito').textContent = d.enDeposito;
+
+            const labels = Object.keys(d.distribucion);
+            const valores = Object.values(d.distribucion);
+
+            const ctx = document.getElementById('graficoEquiposBase').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Equipos instalados',
+                        data: valores,
+                        backgroundColor: '#3b82f6',
+                        borderWidth: 0,
+                        borderRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#5b6a85' }, grid: { color: '#1f2c44' } },
+                        x: { ticks: { color: '#8593ab', font: { size: 10 } }, grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        inicializarEquiposBase();
         cargarDatos();
     </script>
 </body>
