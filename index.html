@@ -987,65 +987,80 @@
             const totalOperativos = filtrados.filter(p => p.operativo).length;
             const totalNoOperativos = filtrados.length - totalOperativos;
 
-            const ctxEstado = document.getElementById('graficoEstado').getContext('2d');
-            if (graficoEstado) graficoEstado.destroy();
+            actualizarGraficoEstado(totalOperativos, totalNoOperativos);
+            actualizarGraficoPorArea(filtrados);
+            actualizarGraficoSistemas(filtrados);
+        }
 
-            graficoEstado = new Chart(ctxEstado, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Operativos', 'No Operativos'],
-                    datasets: [{
-                        data: [totalOperativos, totalNoOperativos],
-                        backgroundColor: ['#22c55e', '#ef4444'],
-                        borderColor: ['#111b2d', '#111b2d'],
-                        borderWidth: 3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#8593ab', font: { size: 12 }, padding: 16 } }
+        function actualizarGraficoEstado(ok, falla) {
+            const ctx = document.getElementById('graficoEstado').getContext('2d');
+            if (!graficoEstado) {
+                graficoEstado = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Operativos', 'No Operativos'],
+                        datasets: [{
+                            data: [ok, falla],
+                            backgroundColor: ['#22c55e', '#ef4444'],
+                            borderColor: ['#111b2d', '#111b2d'],
+                            borderWidth: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: '#8593ab', font: { size: 12 }, padding: 16 } }
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                graficoEstado.data.datasets[0].data = [ok, falla];
+                graficoEstado.update();
+            }
+        }
 
+        function actualizarGraficoPorArea(filtrados) {
             const areaConteo = {};
             filtrados.forEach(p => {
-                const area = p.area || 'Sin area';
+                const area = normalizarArea(p.area) || 'SIN AREA';
                 if (!areaConteo[area]) areaConteo[area] = { operativos: 0, total: 0 };
                 areaConteo[area].total++;
                 if (p.operativo) areaConteo[area].operativos++;
             });
 
             const areas = Object.keys(areaConteo);
+            const labels = areas.map(a => `${a} (${areaConteo[a].total})`);
             const datosOperativos = areas.map(a => areaConteo[a].operativos);
             const datosNoOperativos = areas.map(a => areaConteo[a].total - areaConteo[a].operativos);
 
-            const ctxArea = document.getElementById('graficoArea').getContext('2d');
-            if (graficoArea) graficoArea.destroy();
-
-            graficoArea = new Chart(ctxArea, {
-                type: 'bar',
-                data: {
-                    labels: areas,
-                    datasets: [
-                        { label: 'Operativos', data: datosOperativos, backgroundColor: '#22c55e', borderWidth: 0, borderRadius: 3 },
-                        { label: 'No Operativos', data: datosNoOperativos, backgroundColor: '#ef4444', borderWidth: 0, borderRadius: 3 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true, ticks: { color: '#5b6a85' }, grid: { color: '#1f2c44' } },
-                        x: { ticks: { color: '#5b6a85', font: { size: 10 } }, grid: { display: false } }
+            const ctx = document.getElementById('graficoArea').getContext('2d');
+            if (!graficoArea) {
+                graficoArea = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [
+                            { label: 'Operativos', data: datosOperativos, backgroundColor: '#22c55e', borderWidth: 0, borderRadius: 3 },
+                            { label: 'No Operativos', data: datosNoOperativos, backgroundColor: '#ef4444', borderWidth: 0, borderRadius: 3 }
+                        ]
                     },
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#8593ab', font: { size: 12 }, padding: 16 } }
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true, ticks: { color: '#5b6a85' }, grid: { color: '#1f2c44' } },
+                            x: { ticks: { color: '#8593ab', font: { size: 11 } }, grid: { display: false } }
+                        },
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: '#8593ab', font: { size: 12 }, padding: 16 } }
+                        }
                     }
-                }
-            });
-
-            actualizarGraficoSistemas(filtrados);
+                });
+            } else {
+                graficoArea.data.labels = labels;
+                graficoArea.data.datasets[0].data = datosOperativos;
+                graficoArea.data.datasets[1].data = datosNoOperativos;
+                graficoArea.update();
+            }
         }
 
         function actualizarGraficoSistemas(filtrados) {
@@ -1067,35 +1082,42 @@
                 });
             });
 
-            const labels = sistemasKeys.map(s => s.label);
+            const labels = sistemasKeys.map(s => {
+                const c = conteo[s.key];
+                const equipados = c.ok + c.falla;
+                return c.no_asignado > 0 ? `${s.label} (${equipados} equipados)` : s.label;
+            });
             const dataOk = sistemasKeys.map(s => conteo[s.key].ok);
             const dataFalla = sistemasKeys.map(s => conteo[s.key].falla);
-            const dataNoAsignado = sistemasKeys.map(s => conteo[s.key].no_asignado);
 
-            const ctxSistemas = document.getElementById('graficoSistemas').getContext('2d');
-            if (graficoSistemas) graficoSistemas.destroy();
-
-            graficoSistemas = new Chart(ctxSistemas, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
-                        { label: 'OK', data: dataOk, backgroundColor: '#22c55e', borderWidth: 0, borderRadius: 3, stack: 's' },
-                        { label: 'Falla', data: dataFalla, backgroundColor: '#ef4444', borderWidth: 0, borderRadius: 3, stack: 's' },
-                        { label: 'No asignado', data: dataNoAsignado, backgroundColor: '#3b4a66', borderWidth: 0, borderRadius: 3, stack: 's' }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true, stacked: true, ticks: { color: '#5b6a85' }, grid: { color: '#1f2c44' } },
-                        x: { stacked: true, ticks: { color: '#8593ab' }, grid: { display: false } }
+            const ctx = document.getElementById('graficoSistemas').getContext('2d');
+            if (!graficoSistemas) {
+                graficoSistemas = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [
+                            { label: 'OK', data: dataOk, backgroundColor: '#22c55e', borderWidth: 0, borderRadius: 3, stack: 's' },
+                            { label: 'Falla', data: dataFalla, backgroundColor: '#ef4444', borderWidth: 0, borderRadius: 3, stack: 's' }
+                        ]
                     },
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#8593ab', font: { size: 12 }, padding: 16 } }
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true, stacked: true, ticks: { color: '#5b6a85' }, grid: { color: '#1f2c44' } },
+                            x: { stacked: true, ticks: { color: '#8593ab' }, grid: { display: false } }
+                        },
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: '#8593ab', font: { size: 12 }, padding: 16 } }
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                graficoSistemas.data.labels = labels;
+                graficoSistemas.data.datasets[0].data = dataOk;
+                graficoSistemas.data.datasets[1].data = dataFalla;
+                graficoSistemas.update();
+            }
         }
 
         // Buscador
