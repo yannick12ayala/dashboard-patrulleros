@@ -929,14 +929,17 @@
             return { lineas, callouts };
         }
 
-        const IMAGENES_VEHICULO = {
-            TOYOTA: 'img/toyota.png',
-            BENELLI: 'img/benelli.png'
-        };
-
         function generarVisualVehiculo(patrullero) {
             const marca = (patrullero.marca || '').toUpperCase().trim();
-            const imagen = IMAGENES_VEHICULO[marca];
+            const area = normalizarArea(patrullero.area);
+            let imagen = null;
+
+            if (marca === 'TOYOTA' && area !== 'POLICIAL') {
+                imagen = 'img/toyota.png';
+            } else if (marca === 'BENELLI') {
+                imagen = 'img/benelli.png';
+            }
+
             if (imagen) {
                 return { html: `<img src="${imagen}" alt="${marca} ${patrullero.modelo || ''}">`, esFoto: true };
             }
