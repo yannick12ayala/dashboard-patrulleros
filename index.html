@@ -438,6 +438,12 @@
         }
 
         .vehiculo-central svg { width: 100%; display: block; }
+        .vehiculo-central img {
+            width: 100%;
+            display: block;
+            filter: drop-shadow(0 10px 18px rgba(0,0,0,0.45));
+        }
+        .vehiculo-central.foto { width: 46%; }
 
         .callout {
             position: absolute;
@@ -840,7 +846,7 @@
             document.querySelectorAll('.patrullero-item').forEach(item => item.classList.remove('selected'));
             if (el) el.classList.add('selected');
 
-            const svgPatrullero = generarSVGPatrullero(patrullero);
+            const visualVehiculo = generarVisualVehiculo(patrullero);
             const diagrama = generarDiagrama(patrullero);
 
             detalleDiv.innerHTML = `
@@ -856,7 +862,7 @@
                         <svg class="conectores" viewBox="0 0 100 75" preserveAspectRatio="none">
                             ${diagrama.lineas}
                         </svg>
-                        <div class="vehiculo-central">${svgPatrullero}</div>
+                        <div class="vehiculo-central ${visualVehiculo.esFoto ? 'foto' : ''}">${visualVehiculo.html}</div>
                         ${diagrama.callouts}
                     </div>
 
@@ -921,6 +927,19 @@
             `;
 
             return { lineas, callouts };
+        }
+
+        const IMAGENES_VEHICULO = {
+            TOYOTA: 'img/toyota.png'
+        };
+
+        function generarVisualVehiculo(patrullero) {
+            const marca = (patrullero.marca || '').toUpperCase().trim();
+            const imagen = IMAGENES_VEHICULO[marca];
+            if (imagen) {
+                return { html: `<img src="${imagen}" alt="${marca} ${patrullero.modelo || ''}">`, esFoto: true };
+            }
+            return { html: generarSVGPatrullero(patrullero), esFoto: false };
         }
 
         function generarSVGPatrullero(patrullero) {
