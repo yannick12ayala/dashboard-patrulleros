@@ -236,6 +236,21 @@
         .kpi-pct .kpi-icon { background: rgba(201,164,76,0.14); }
         .kpi-pct .kpi-value { color: var(--gold); }
 
+        .kpi-sistema .kpi-icon { background: rgba(133,147,171,0.12); }
+
+        .kpi-doble {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            font-size: 1.7em;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .kpi-doble .kpi-ok { color: var(--success); }
+        .kpi-doble .kpi-falla { color: var(--danger); }
+        .kpi-doble .kpi-sep { color: var(--text-faint); font-size: 0.6em; font-weight: 400; }
+
         /* ===== MAIN LAYOUT ===== */
         .main-content {
             display: grid;
@@ -675,6 +690,37 @@
             </div>
         </div>
 
+        <div class="kpi-container">
+            <div class="kpi-card kpi-sistema">
+                <div>
+                    <div class="kpi-label">GPS (STRIX/SOFLEX)</div>
+                    <div class="kpi-doble"><span class="kpi-ok" id="gpsOk">0</span><span class="kpi-sep">/</span><span class="kpi-falla" id="gpsFalla">0</span></div>
+                </div>
+                <div class="kpi-icon">📍</div>
+            </div>
+            <div class="kpi-card kpi-sistema">
+                <div>
+                    <div class="kpi-label">Radio Base</div>
+                    <div class="kpi-doble"><span class="kpi-ok" id="radioOk">0</span><span class="kpi-sep">/</span><span class="kpi-falla" id="radioFalla">0</span></div>
+                </div>
+                <div class="kpi-icon">📡</div>
+            </div>
+            <div class="kpi-card kpi-sistema">
+                <div>
+                    <div class="kpi-label">Camaras</div>
+                    <div class="kpi-doble"><span class="kpi-ok" id="camarasOk">0</span><span class="kpi-sep">/</span><span class="kpi-falla" id="camarasFalla">0</span></div>
+                </div>
+                <div class="kpi-icon">📷</div>
+            </div>
+            <div class="kpi-card kpi-sistema">
+                <div>
+                    <div class="kpi-label">Baliza</div>
+                    <div class="kpi-doble"><span class="kpi-ok" id="balizaOk">0</span><span class="kpi-sep">/</span><span class="kpi-falla" id="balizaFalla">0</span></div>
+                </div>
+                <div class="kpi-icon">🚨</div>
+            </div>
+        </div>
+
         <!-- Contenido Principal -->
         <div class="main-content">
             <!-- Lista Patrulleros No Operativos -->
@@ -807,8 +853,29 @@
             const porcentaje = totalGeneral > 0 ? Math.round((totalOperativos / totalGeneral) * 100) : 0;
             document.getElementById('porcentajeOperativo').textContent = porcentaje + '%';
 
+            actualizarKpisSistemas(filtrados);
             actualizarListaPatrulleros(filtrados);
             actualizarGraficos(filtrados);
+        }
+
+        function actualizarKpisSistemas(filtrados) {
+            const sistemas = { gps: { ok: 0, falla: 0 }, radio_base: { ok: 0, falla: 0 }, camaras: { ok: 0, falla: 0 }, baliza: { ok: 0, falla: 0 } };
+            filtrados.forEach(p => {
+                const f = p.fallas || {};
+                for (const key in sistemas) {
+                    if ((f[key] || 'ok') === 'falla') sistemas[key].falla++;
+                    else if ((f[key] || 'ok') === 'ok') sistemas[key].ok++;
+                }
+            });
+
+            document.getElementById('gpsOk').textContent = sistemas.gps.ok;
+            document.getElementById('gpsFalla').textContent = sistemas.gps.falla;
+            document.getElementById('radioOk').textContent = sistemas.radio_base.ok;
+            document.getElementById('radioFalla').textContent = sistemas.radio_base.falla;
+            document.getElementById('camarasOk').textContent = sistemas.camaras.ok;
+            document.getElementById('camarasFalla').textContent = sistemas.camaras.falla;
+            document.getElementById('balizaOk').textContent = sistemas.baliza.ok;
+            document.getElementById('balizaFalla').textContent = sistemas.baliza.falla;
         }
 
         function actualizarListaPatrulleros(filtrados) {
