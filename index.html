@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- redeploy-trigger-2 -->
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -879,11 +878,6 @@
             actualizarGraficos(filtrados);
         }
 
-        const ASIGNACIONES_CAMARAS = ['COVU', 'DIR. PATRULLAS', 'DEFENSA CIVIL', 'DIR. TRÁNSITO'];
-        function aplicaCamaras(p) {
-            return ASIGNACIONES_CAMARAS.includes((p.asignacion || '').trim().toUpperCase());
-        }
-
         function contarCamaras(p) {
             const sistema = (p.sistema || '').trim().toUpperCase();
             if (sistema === 'DVR') return 2;
@@ -897,8 +891,8 @@
                 const f = p.fallas || {};
                 for (const key in sistemas) {
                     if (key === 'camaras') {
-                        if (!aplicaCamaras(p)) continue;
-                        const peso = contarCamaras(p) || 1;
+                        const peso = contarCamaras(p);
+                        if (peso === 0) continue;
                         if ((f[key] || 'ok') === 'falla') sistemas[key].falla += peso;
                         else if ((f[key] || 'ok') === 'ok') sistemas[key].ok += peso;
                         continue;
@@ -1150,10 +1144,14 @@
             filtrados.forEach(p => {
                 const f = p.fallas || {};
                 sistemasKeys.forEach(s => {
-                    if (s.key === 'camaras' && !aplicaCamaras(p)) return;
                     const estado = f[s.key] || 'ok';
-                    const peso = (s.key === 'camaras' && estado !== 'no_asignado') ? (contarCamaras(p) || 1) : 1;
-                    conteo[s.key][estado] = (conteo[s.key][estado] || 0) + peso;
+                    if (s.key === 'camaras') {
+                        const peso = contarCamaras(p);
+                        if (peso === 0) return;
+                        conteo[s.key][estado] = (conteo[s.key][estado] || 0) + peso;
+                        return;
+                    }
+                    conteo[s.key][estado] = (conteo[s.key][estado] || 0) + 1;
                 });
             });
 
