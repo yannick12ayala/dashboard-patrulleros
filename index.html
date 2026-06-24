@@ -878,10 +878,6 @@
             actualizarGraficos(filtrados);
         }
 
-        function esVehiculoDeApoyo(p) {
-            return (p.asignacion || '').trim().toUpperCase() === 'DIR. LOGÍSTICA';
-        }
-
         const ASIGNACIONES_CAMARAS = ['COVU', 'DIR. PATRULLAS', 'DEFENSA CIVIL', 'DIR. TRÁNSITO'];
         function aplicaCamaras(p) {
             return ASIGNACIONES_CAMARAS.includes((p.asignacion || '').trim().toUpperCase());
@@ -889,7 +885,7 @@
 
         function actualizarKpisSistemas(filtrados) {
             const sistemas = { gps: { ok: 0, falla: 0 }, radio_base: { ok: 0, falla: 0 }, camaras: { ok: 0, falla: 0 }, baliza: { ok: 0, falla: 0 } };
-            filtrados.filter(p => !esVehiculoDeApoyo(p)).forEach(p => {
+            filtrados.forEach(p => {
                 const f = p.fallas || {};
                 for (const key in sistemas) {
                     if (key === 'camaras' && !aplicaCamaras(p)) continue;
@@ -1137,7 +1133,7 @@
             const conteo = {};
             sistemasKeys.forEach(s => { conteo[s.key] = { ok: 0, falla: 0, no_asignado: 0 }; });
 
-            filtrados.filter(p => !esVehiculoDeApoyo(p)).forEach(p => {
+            filtrados.forEach(p => {
                 const f = p.fallas || {};
                 sistemasKeys.forEach(s => {
                     if (s.key === 'camaras' && !aplicaCamaras(p)) return;
