@@ -1,7 +1,32 @@
 [
-  { "legajo": "30312", "hash": null, "salt": null, "activado": false },
-  { "legajo": "30149", "hash": null, "salt": null, "activado": false },
-  { "legajo": "30925", "hash": null, "salt": null, "activado": false },
-  { "legajo": "32126", "hash": null, "salt": null, "activado": false },
-  { "legajo": "28660", "hash": null, "salt": null, "activado": false }
+  {
+    "legajo": "30312",
+    "hash": null,
+    "salt": null,
+    "activado": false
+  },
+  {
+    "legajo": "30149",
+    "hash": null,
+    "salt": null,
+    "activado": false
+  },
+  {
+    "legajo": "30925",
+    "hash": "8410ac5ec54e6ef7cd2c0d51e13e1c0da73a6ca8195d176c8fccf28998942576c52f43982f38c0afcef6984f57d3b7a2457605433cf26ef0181d07bbe24351b4",
+    "salt": "b91dd941f0d563d7b1235752e677b522",
+    "activado": true
+  },
+  {
+    "legajo": "32126",
+    "hash": null,
+    "salt": null,
+    "activado": false
+  },
+  {
+    "legajo": "28660",
+    "hash": null,
+    "salt": null,
+    "activado": false
+  }
 ]
