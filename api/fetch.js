@@ -29,6 +29,19 @@ function calcularFallas(p) {
   };
 }
 
+async function leerOverrides() {
+  try {
+    const r = await fetch(
+      'https://api.github.com/repos/yannick12ayala/dashboard-patrulleros/contents/overrides.json',
+      { headers: { 'Accept': 'application/vnd.github.v3.raw', 'User-Agent': 'dashboard-patrulleros' } }
+    );
+    if (!r.ok) return {};
+    return await r.json();
+  } catch {
+    return {};
+  }
+}
+
 export default async function handler(req, res) {
   try {
     const now = Date.now();
@@ -47,11 +60,24 @@ export default async function handler(req, res) {
     if (!r.ok) throw new Error(`GitHub API HTTP ${r.status}`);
     const raw = await r.json();
     const patrulleros = Array.isArray(raw) ? raw : (raw.patrulleros || []);
+    const overrides = await leerOverrides();
 
     patrulleros.forEach(p => {
       const estado = String(p.estado || '').toUpperCase().trim();
       p.operativo = estado === 'ACTIVO' || estado === 'E/S';
       p.fallas = calcularFallas(p);
+
+      const ov = overrides[p.numero];
+      if (ov && ov.estado_actual) {
+        p.operativo = ov.estado_actual === 'OPERATIVO';
+        p.motivo_fuera_servicio = ov.motivo || null;
+        p.historial = ov.historial || [];
+        p.estado_manual = true;
+      } else {
+        p.motivo_fuera_servicio = null;
+        p.historial = [];
+        p.estado_manual = false;
+      }
     });
 
     const sistemas = { gps: { ok: 0, falla: 0, no_asignado: 0 }, radio_base: { ok: 0, falla: 0, no_asignado: 0 }, camaras: { ok: 0, falla: 0, no_asignado: 0 }, baliza: { ok: 0, falla: 0, no_asignado: 0 } };

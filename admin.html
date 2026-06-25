@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrador | Control de Dispositivos de la Flota</title>
+    <style>
+        :root {
+            --bg: #0b1320;
+            --bg-elevated: #111b2d;
+            --border: #1f2c44;
+            --border-light: #2a3b59;
+            --text: #e7ecf3;
+            --text-dim: #8593ab;
+            --text-faint: #5b6a85;
+            --accent: #3b82f6;
+            --accent-soft: #1d4ed8;
+            --gold: #c9a44c;
+            --success: #22c55e;
+            --success-bg: rgba(34, 197, 94, 0.08);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.08);
+            --radius: 10px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: radial-gradient(circle at top, #0e1830 0%, var(--bg) 55%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        .top-bar { height: 4px; background: linear-gradient(90deg, var(--accent-soft), var(--gold)); }
+
+        .login-wrap {
+            min-height: calc(100vh - 4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 380px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+        }
+        .login-card h1 {
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .login-card p.sub {
+            font-size: 0.85em;
+            color: var(--text-dim);
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            font-size: 0.78em;
+            color: var(--text-faint);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 11px 14px;
+            color: var(--text);
+            font-size: 0.92em;
+            font-family: inherit;
+            outline: none;
+            margin-bottom: 16px;
+        }
+        input:focus { border-color: var(--accent); }
+        button {
+            width: 100%;
+            background: var(--accent-soft);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 11px 14px;
+            font-size: 0.92em;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.15s ease;
+        }
+        button:hover { opacity: 0.88; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button.secundario {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-dim);
+            margin-top: 8px;
+        }
+        .msg {
+            font-size: 0.82em;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            display: none;
+        }
+        .msg.error { background: var(--danger-bg); color: var(--danger); display: block; }
+        .msg.ok { background: var(--success-bg); color: var(--success); display: block; }
+        .hidden { display: none !important; }
+
+        /* ===== PANEL ===== */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border);
+        }
+        header h1 { font-size: 1.1em; font-weight: 700; }
+        header .legajo-pill {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: 999px;
+            padding: 8px 16px;
+            font-size: 0.82em;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        header .legajo-pill button {
+            width: auto;
+            background: transparent;
+            color: var(--danger);
+            padding: 4px 8px;
+            font-size: 0.85em;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .panel-grid { grid-template-columns: 1fr; }
+        }
+
+        .section {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+        }
+        .section h2 {
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-results-admin {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+        .vehiculo-item {
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--danger);
+            border-radius: 8px;
+            background: var(--bg);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .vehiculo-item.operativo { border-left-color: var(--success); }
+        .vehiculo-item:hover { border-color: var(--border-light); }
+        .vehiculo-item.selected { background: rgba(59,130,246,0.08); border-color: var(--accent); }
+        .vehiculo-numero { font-weight: 700; font-size: 0.95em; margin-bottom: 3px; }
+        .vehiculo-sub { font-size: 0.78em; color: var(--text-dim); }
+
+        .estado-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            font-size: 0.75em;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border-radius: 999px;
+        }
+        .estado-badge.operativo { background: var(--success-bg); color: var(--success); }
+        .estado-badge.no-operativo { background: var(--danger-bg); color: var(--danger); }
+
+        .form-row { margin-top: 18px; }
+        select {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 11px 14px;
+            color: var(--text);
+            font-size: 0.92em;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .estado-toggle {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .estado-toggle button {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border-light);
+            color: var(--text-dim);
+        }
+        .estado-toggle button.activo.op { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+        .estado-toggle button.activo.nop { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+
+        .historial-item {
+            padding: 10px 12px;
+            border-left: 2px solid var(--border-light);
+            margin-bottom: 10px;
+            font-size: 0.82em;
+        }
+        .historial-item .fecha { color: var(--text-faint); font-size: 0.85em; }
+        .historial-item .estado-tag { font-weight: 700; }
+        .historial-item .estado-tag.op { color: var(--success); }
+        .historial-item .estado-tag.nop { color: var(--danger); }
+
+        .placeholder { text-align: center; color: var(--text-faint); padding: 40px 20px; font-size: 0.88em; }
+    </style>
+</head>
+<body>
+    <div class="top-bar"></div>
+
+    <!-- LOGIN -->
+    <div class="login-wrap" id="loginWrap">
+        <div class="login-card">
+            <h1>Panel Administrador</h1>
+            <p class="sub">Control de Dispositivos de la Flota</p>
+
+            <div class="msg" id="loginMsg"></div>
+
+            <div id="pasoLegajo">
+                <label>Legajo</label>
+                <input type="text" id="inputLegajo" placeholder="Ej: 30312" autocomplete="username">
+                <button onclick="verificarLegajo()">Continuar</button>
+            </div>
+
+            <div id="pasoLogin" class="hidden">
+                <label>Contraseña</label>
+                <input type="password" id="inputPassword" placeholder="Tu contraseña" autocomplete="current-password">
+                <button onclick="iniciarSesion()">Ingresar</button>
+                <button class="secundario" onclick="volverAlLegajo()">Volver</button>
+            </div>
+
+            <div id="pasoCrear" class="hidden">
+                <p class="sub" style="margin-bottom:14px;">Es tu primer ingreso. Creá tu contraseña (mínimo 6 caracteres).</p>
+                <label>Nueva contraseña</label>
+                <input type="password" id="inputNuevaPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                <label>Confirmar contraseña</label>
+                <input type="password" id="inputConfirmarPassword" placeholder="Repetí la contraseña" autocomplete="new-password">
+                <button onclick="crearPassword()">Crear contraseña e ingresar</button>
+                <button class="secundario" onclick="volverAlLegajo()">Volver</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL -->
+    <div id="panelWrap" class="hidden">
+        <header>
+            <h1>Panel Administrador — Flota</h1>
+            <div class="legajo-pill">
+                Legajo <strong id="legajoActual">-</strong>
+                <button onclick="cerrarSesion()">Salir</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="panel-grid">
+                <div class="section">
+                    <h2>Seleccionar Patrullero</h2>
+                    <input type="text" id="buscarVehiculo" placeholder="Buscar por número o patente..." style="margin-bottom:14px;">
+                    <div class="search-results-admin" id="listaVehiculos">
+                        <div class="placeholder">Cargando...</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Modificar Estado</h2>
+                    <div id="detalleAdmin" class="placeholder">
+                        Seleccioná un patrullero de la lista
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = sessionStorage.getItem('admin_token') || null;
+        let legajoCheckActual = null;
+        let datosGlobal = null;
+        let vehiculoSeleccionado = null;
+
+        function mostrarMsg(texto, tipo) {
+            const el = document.getElementById('loginMsg');
+            el.textContent = texto;
+            el.className = 'msg ' + tipo;
+        }
+
+        function ocultarPasos() {
+            document.getElementById('pasoLegajo').classList.add('hidden');
+            document.getElementById('pasoLogin').classList.add('hidden');
+            document.getElementById('pasoCrear').classList.add('hidden');
+        }
+
+        function volverAlLegajo() {
+            ocultarPasos();
+            document.getElementById('pasoLegajo').classList.remove('hidden');
+            document.getElementById('loginMsg').className = 'msg';
+        }
+
+        async function verificarLegajo() {
+            const legajo = document.getElementById('inputLegajo').value.trim();
+            if (!legajo) return mostrarMsg('Ingresá tu legajo', 'error');
+            try {
+                const r = await fetch('/api/auth-check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ legajo })
+                });
+                const data = await r.json();
+                if (!data.valido) return mostrarMsg('Legajo no autorizado', 'error');
+
+                legajoCheckActual = legajo;
+                ocultarPasos();
+                if (data.activado) {
+                    document.getElementById('pasoLogin').classList.remove('hidden');
+                } else {
+                    document.getElementById('pasoCrear').classList.remove('hidden');
+                }
+            } catch (e) {
+                mostrarMsg('Error de conexión', 'error');
+            }
+        }
+
+        async function crearPassword() {
+            const p1 = document.getElementById('inputNuevaPassword').value;
+            const p2 = document.getElementById('inputConfirmarPassword').value;
+            if (p1.length < 6) return mostrarMsg('La contraseña debe tener al menos 6 caracteres', 'error');
+            if (p1 !== p2) return mostrarMsg('Las contraseñas no coinciden', 'error');
+
+            try {
+                const r = await fetch('/api/auth-set-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ legajo: legajoCheckActual, password: p1 })
+                });
+                const data = await r.json();
+                if (!r.ok) return mostrarMsg(data.error || 'Error al crear la contraseña', 'error');
+
+                await loguearCon(legajoCheckActual, p1);
+            } catch (e) {
+                mostrarMsg('Error de conexión', 'error');
+            }
+        }
+
+        async function iniciarSesion() {
+            const password = document.getElementById('inputPassword').value;
+            await loguearCon(legajoCheckActual, password);
+        }
+
+        async function loguearCon(legajo, password) {
+            try {
+                const r = await fetch('/api/auth-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ legajo, password })
+                });
+                const data = await r.json();
+                if (!r.ok) return mostrarMsg(data.error || 'Usuario o contraseña incorrectos', 'error');
+
+                token = data.token;
+                sessionStorage.setItem('admin_token', token);
+                sessionStorage.setItem('admin_legajo', data.legajo);
+                mostrarPanel();
+            } catch (e) {
+                mostrarMsg('Error de conexión', 'error');
+            }
+        }
+
+        function cerrarSesion() {
+            sessionStorage.removeItem('admin_token');
+            sessionStorage.removeItem('admin_legajo');
+            token = null;
+            document.getElementById('panelWrap').classList.add('hidden');
+            document.getElementById('loginWrap').classList.remove('hidden');
+            volverAlLegajo();
+            document.getElementById('inputLegajo').value = '';
+            document.getElementById('inputPassword').value = '';
+        }
+
+        function mostrarPanel() {
+            document.getElementById('loginWrap').classList.add('hidden');
+            document.getElementById('panelWrap').classList.remove('hidden');
+            document.getElementById('legajoActual').textContent = sessionStorage.getItem('admin_legajo') || '-';
+            cargarVehiculos();
+        }
+
+        async function cargarVehiculos() {
+            try {
+                const r = await fetch('/api/fetch');
+                datosGlobal = await r.json();
+                renderListaVehiculos(datosGlobal.patrulleros);
+            } catch (e) {
+                document.getElementById('listaVehiculos').innerHTML = '<div class="placeholder">Error al cargar datos</div>';
+            }
+        }
+
+        function renderListaVehiculos(lista) {
+            const cont = document.getElementById('listaVehiculos');
+            if (lista.length === 0) {
+                cont.innerHTML = '<div class="placeholder">Sin resultados</div>';
+                return;
+            }
+            cont.innerHTML = lista.map(p => `
+                <div class="vehiculo-item ${p.operativo ? 'operativo' : ''}" onclick="seleccionarVehiculo('${p.numero}')">
+                    <div class="vehiculo-numero">${p.numero}</div>
+                    <div class="vehiculo-sub">${p.tipo || '-'} · ${p.area || '-'}</div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('buscarVehiculo').addEventListener('input', (e) => {
+            const q = e.target.value.trim().toUpperCase();
+            if (!datosGlobal) return;
+            const filtrados = !q ? datosGlobal.patrulleros : datosGlobal.patrulleros.filter(p =>
+                (p.numero || '').toUpperCase().includes(q) || (p.placa || '').toUpperCase().includes(q)
+            );
+            renderListaVehiculos(filtrados);
+        });
+
+        function seleccionarVehiculo(numero) {
+            vehiculoSeleccionado = datosGlobal.patrulleros.find(p => p.numero === numero);
+            document.querySelectorAll('.vehiculo-item').forEach(el => el.classList.remove('selected'));
+            renderDetalleAdmin();
+        }
+
+        const MOTIVOS = [
+            'FALLA MECANICA',
+            'SINIESTRO',
+            'CAMARAS FUERA DE SERVICIO',
+            'RADIO BASE FUERA DE SERVICIO',
+            'BALIZA FUERA DE SERVICIO'
+        ];
+
+        function renderDetalleAdmin() {
+            const p = vehiculoSeleccionado;
+            const det = document.getElementById('detalleAdmin');
+            if (!p) {
+                det.innerHTML = '<div class="placeholder">Seleccioná un patrullero de la lista</div>';
+                return;
+            }
+
+            const historialHtml = (p.historial || []).length === 0
+                ? '<div class="placeholder" style="padding:16px;">Sin cambios registrados</div>'
+                : p.historial.map(h => `
+                    <div class="historial-item">
+                        <div class="fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Legajo ${h.legajo}</div>
+                        <div><span class="estado-tag ${h.estado === 'OPERATIVO' ? 'op' : 'nop'}">${h.estado}</span>${h.motivo ? ' · ' + h.motivo : ''}</div>
+                    </div>
+                `).join('');
+
+            det.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+                    <h3 style="font-size:1.1em;">${p.numero}</h3>
+                    <span class="estado-badge ${p.operativo ? 'operativo' : 'no-operativo'}">${p.operativo ? '✓ OPERATIVO' : '✗ FUERA DE SERVICIO'}</span>
+                </div>
+
+                <label>Cambiar estado a:</label>
+                <div class="estado-toggle">
+                    <button id="btnOp" class="${p.operativo ? 'activo op' : ''}" onclick="elegirEstado('OPERATIVO')">Operativo</button>
+                    <button id="btnNop" class="${!p.operativo ? 'activo nop' : ''}" onclick="elegirEstado('FUERA DE SERVICIO')">Fuera de Servicio</button>
+                </div>
+
+                <div class="form-row hidden" id="filaMotivo">
+                    <label>Motivo</label>
+                    <select id="selectMotivo">
+                        ${MOTIVOS.map(m => `<option value="${m}">${m}</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <button onclick="guardarEstado()">Guardar cambio</button>
+                </div>
+                <div class="msg" id="adminMsg"></div>
+
+                <div class="form-row">
+                    <label>Historial</label>
+                    ${historialHtml}
+                </div>
+            `;
+
+            estadoElegido = p.operativo ? 'OPERATIVO' : 'FUERA DE SERVICIO';
+            document.getElementById('filaMotivo').classList.toggle('hidden', estadoElegido !== 'FUERA DE SERVICIO');
+        }
+
+        let estadoElegido = null;
+
+        function elegirEstado(estado) {
+            estadoElegido = estado;
+            document.getElementById('btnOp').className = estado === 'OPERATIVO' ? 'activo op' : '';
+            document.getElementById('btnNop').className = estado === 'FUERA DE SERVICIO' ? 'activo nop' : '';
+            document.getElementById('filaMotivo').classList.toggle('hidden', estado !== 'FUERA DE SERVICIO');
+        }
+
+        async function guardarEstado() {
+            const motivo = estadoElegido === 'FUERA DE SERVICIO' ? document.getElementById('selectMotivo').value : null;
+            const msgEl = document.getElementById('adminMsg');
+            try {
+                const r = await fetch('/api/admin-update-estado', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, numero: vehiculoSeleccionado.numero, estado: estadoElegido, motivo })
+                });
+                const data = await r.json();
+                if (!r.ok) {
+                    msgEl.className = 'msg error';
+                    msgEl.textContent = data.error || 'Error al guardar';
+                    return;
+                }
+                msgEl.className = 'msg ok';
+                msgEl.textContent = 'Cambio guardado correctamente';
+
+                vehiculoSeleccionado.operativo = estadoElegido === 'OPERATIVO';
+                vehiculoSeleccionado.motivo_fuera_servicio = motivo;
+                vehiculoSeleccionado.historial = data.historial;
+                renderDetalleAdmin();
+                document.getElementById('adminMsg').className = 'msg ok';
+                document.getElementById('adminMsg').textContent = 'Cambio guardado correctamente';
+            } catch (e) {
+                msgEl.className = 'msg error';
+                msgEl.textContent = 'Error de conexión';
+            }
+        }
+
+        // Restaurar sesión si existe
+        if (token) {
+            mostrarPanel();
+        }
+    </script>
+</body>
+</html>

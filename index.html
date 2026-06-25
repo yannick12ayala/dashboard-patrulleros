@@ -595,6 +595,18 @@
 
         .info-box.ok { border-left-color: var(--success); }
 
+        .historial-item {
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8em;
+            color: var(--text-dim);
+        }
+        .historial-item:last-child { border-bottom: none; }
+        .historial-fecha { color: var(--text-faint); display: block; margin-bottom: 3px; }
+        .historial-estado { font-weight: 700; }
+        .historial-estado.op { color: var(--success); }
+        .historial-estado.nop { color: var(--danger); }
+
         .placeholder {
             text-align: center;
             color: var(--text-faint);
@@ -1011,7 +1023,26 @@
                         <div class="info-row"><span class="label">Asignacion</span><span class="value">${patrullero.asignacion || '-'}</span></div>
                         <div class="info-row"><span class="label">N° Chasis / VIN</span><span class="value">${patrullero.serie || '-'}</span></div>
                         <div class="info-row"><span class="label">GPS (AVL)</span><span class="value">${patrullero.avl || '-'}</span></div>
+                        ${patrullero.estado_manual && patrullero.motivo_fuera_servicio ? `<div class="info-row" style="grid-column:1/-1;"><span class="label">Motivo Fuera de Servicio</span><span class="value">${patrullero.motivo_fuera_servicio}</span></div>` : ''}
                     </div>
+
+                    ${generarHistorialHtml(patrullero.historial)}
+                </div>
+            `;
+        }
+
+        function generarHistorialHtml(historial) {
+            if (!historial || historial.length === 0) return '';
+            const items = historial.map(h => `
+                <div class="historial-item">
+                    <span class="historial-fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Legajo ${h.legajo}</span>
+                    <span class="historial-estado ${h.estado === 'OPERATIVO' ? 'op' : 'nop'}">${h.estado}</span>${h.motivo ? ' · ' + h.motivo : ''}
+                </div>
+            `).join('');
+            return `
+                <div class="info-grid" style="margin-top:14px; display:block;">
+                    <div class="label" style="margin-bottom:10px;">Historial de Cambios</div>
+                    ${items}
                 </div>
             `;
         }
