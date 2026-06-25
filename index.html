@@ -697,7 +697,7 @@
             </div>
             <div class="kpi-card kpi-no-operativo">
                 <div>
-                    <div class="kpi-label">No Operativos</div>
+                    <div class="kpi-label">Fuera de Servicio</div>
                     <div class="kpi-value" id="noOperativos">0</div>
                 </div>
                 <div class="kpi-icon">⚠</div>
@@ -755,10 +755,10 @@
                 </div>
             </div>
 
-            <!-- Lista Patrulleros No Operativos -->
+            <!-- Lista Patrulleros Fuera de Servicio -->
             <div class="section">
                 <div class="section-header">
-                    <h2>⚠️ No Operativos</h2>
+                    <h2>⚠️ Fuera de Servicio</h2>
                     <span class="badge-count" id="noOperativosBadge">0</span>
                 </div>
                 <div class="lista-patrulleros" id="listaPatrulleros">
@@ -996,7 +996,7 @@
                     <div class="detalle-header">
                         <h3>${patrullero.numero}</h3>
                         <div class="estado-badge ${patrullero.operativo ? 'operativo' : 'no-operativo'}">
-                            ${patrullero.operativo ? '✓ OPERATIVO' : '✗ NO OPERATIVO'}
+                            ${patrullero.operativo ? '✓ OPERATIVO' : '✗ FUERA DE SERVICIO'}
                         </div>
                     </div>
 
@@ -1131,7 +1131,7 @@
                         labels,
                         datasets: [
                             { label: 'Operativos', data: datosOperativos, backgroundColor: '#22c55e', borderWidth: 0, borderRadius: 3 },
-                            { label: 'No Operativos', data: datosNoOperativos, backgroundColor: '#ef4444', borderWidth: 0, borderRadius: 3 }
+                            { label: 'Fuera de Servicio', data: datosNoOperativos, backgroundColor: '#ef4444', borderWidth: 0, borderRadius: 3 }
                         ]
                     },
                     options: {
