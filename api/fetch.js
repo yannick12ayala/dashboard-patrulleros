@@ -66,17 +66,24 @@ export default async function handler(req, res) {
       const estado = String(p.estado || '').toUpperCase().trim();
       p.operativo = estado === 'ACTIVO' || estado === 'E/S';
       p.fallas = calcularFallas(p);
+      p.asignacion_original = p.asignacion;
+      p.en_prestamo = false;
+      p.motivo_fuera_servicio = null;
+      p.historial = [];
+      p.estado_manual = false;
 
       const ov = overrides[p.numero];
-      if (ov && ov.estado_actual) {
-        p.operativo = ov.estado_actual === 'OPERATIVO';
-        p.motivo_fuera_servicio = ov.motivo || null;
+      if (ov) {
         p.historial = ov.historial || [];
-        p.estado_manual = true;
-      } else {
-        p.motivo_fuera_servicio = null;
-        p.historial = [];
-        p.estado_manual = false;
+        if (ov.estado_actual) {
+          p.operativo = ov.estado_actual === 'OPERATIVO';
+          p.motivo_fuera_servicio = ov.motivo || null;
+          p.estado_manual = true;
+        }
+        if (ov.asignacion_actual && ov.asignacion_actual !== p.asignacion_original) {
+          p.asignacion = ov.asignacion_actual;
+          p.en_prestamo = true;
+        }
       }
     });
 

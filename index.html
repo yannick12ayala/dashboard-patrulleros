@@ -1014,7 +1014,7 @@
                         <div class="info-row"><span class="label">Tipo</span><span class="value">${patrullero.tipo || '-'}</span></div>
                         <div class="info-row"><span class="label">Area</span><span class="value">${patrullero.area || '-'}</span></div>
                         <div class="info-row"><span class="label">Titular</span><span class="value">${patrullero.titular || '-'}</span></div>
-                        <div class="info-row"><span class="label">Asignacion</span><span class="value">${patrullero.asignacion || '-'}</span></div>
+                        <div class="info-row"><span class="label">Asignacion</span><span class="value">${patrullero.asignacion || '-'}${patrullero.en_prestamo ? ` <span style="color:var(--gold);">(préstamo desde ${patrullero.asignacion_original})</span>` : ''}</span></div>
                         <div class="info-row"><span class="label">N° Chasis / VIN</span><span class="value">${patrullero.serie || '-'}</span></div>
                         <div class="info-row"><span class="label">GPS (AVL)</span><span class="value">${patrullero.avl || '-'}</span></div>
                         ${patrullero.estado_manual && patrullero.motivo_fuera_servicio ? `<div class="info-row" style="grid-column:1/-1;"><span class="label">Motivo Fuera de Servicio</span><span class="value">${patrullero.motivo_fuera_servicio}</span></div>` : ''}
@@ -1027,12 +1027,23 @@
 
         function generarHistorialHtml(historial) {
             if (!historial || historial.length === 0) return '';
-            const items = historial.map(h => `
-                <div class="historial-item">
-                    <span class="historial-fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Legajo ${h.legajo}</span>
-                    <span class="historial-estado ${h.estado === 'OPERATIVO' ? 'op' : 'nop'}">${h.estado}</span>${h.motivo ? ' · ' + h.motivo : ''}
-                </div>
-            `).join('');
+            const items = historial.map(h => {
+                const esPrestamo = h.tipo === 'prestamo' || (!h.tipo && h.asignacion_destino);
+                if (esPrestamo) {
+                    return `
+                        <div class="historial-item">
+                            <span class="historial-fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Legajo ${h.legajo}</span>
+                            <span class="historial-estado" style="color:var(--gold);">PRÉSTAMO</span> ${h.asignacion_origen || '-'} → ${h.asignacion_destino}
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="historial-item">
+                        <span class="historial-fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Legajo ${h.legajo}</span>
+                        <span class="historial-estado ${h.estado === 'OPERATIVO' ? 'op' : 'nop'}">${h.estado}</span>${h.motivo ? ' · ' + h.motivo : ''}
+                    </div>
+                `;
+            }).join('');
             return `
                 <div class="info-grid" style="margin-top:14px; display:block;">
                     <div class="label" style="margin-bottom:10px;">Historial de Cambios</div>

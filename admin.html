@@ -491,14 +491,28 @@
 
             const historialHtml = (p.historial || []).length === 0
                 ? '<div class="placeholder" style="padding:16px;">Sin cambios registrados</div>'
-                : p.historial.map(h => `
-                    <div class="historial-item">
-                        <div class="fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Legajo ${h.legajo}</div>
-                        <div><span class="estado-tag ${h.estado === 'OPERATIVO' ? 'op' : 'nop'}">${h.estado}</span>${h.motivo ? ' · ' + h.motivo : ''}</div>
-                    </div>
-                `).join('');
+                : p.historial.map(h => {
+                    const esPrestamo = h.tipo === 'prestamo' || (!h.tipo && h.asignacion_destino);
+                    if (esPrestamo) {
+                        return `
+                            <div class="historial-item">
+                                <div class="fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Legajo ${h.legajo}</div>
+                                <div><span class="estado-tag" style="color:var(--gold);">PRÉSTAMO</span> ${h.asignacion_origen || '-'} → ${h.asignacion_destino}</div>
+                            </div>
+                        `;
+                    }
+                    return `
+                        <div class="historial-item">
+                            <div class="fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Legajo ${h.legajo}</div>
+                            <div><span class="estado-tag ${h.estado === 'OPERATIVO' ? 'op' : 'nop'}">${h.estado}</span>${h.motivo ? ' · ' + h.motivo : ''}</div>
+                        </div>
+                    `;
+                }).join('');
 
             const visual = generarVisualVehiculo(p);
+
+            const asignaciones = [...new Set((datosGlobal.patrulleros || []).map(v => (v.asignacion || '').trim()).filter(Boolean))].sort();
+            const asignacionActual = (p.asignacion || '').trim();
 
             det.innerHTML = `
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
@@ -507,6 +521,8 @@
                 </div>
 
                 <div class="vehiculo-imagen">${visual.html}</div>
+
+                ${p.en_prestamo ? `<div class="msg" style="display:block; background:rgba(201,164,76,0.12); color:var(--gold); margin-bottom:14px;">En préstamo desde ${p.asignacion_original} → actualmente en ${p.asignacion}</div>` : ''}
 
                 <label>Cambiar estado a:</label>
                 <div class="estado-toggle">
@@ -526,6 +542,17 @@
                 </div>
                 <div class="msg" id="adminMsg"></div>
 
+                <div class="form-row" style="border-top:1px solid var(--border); padding-top:18px; margin-top:22px;">
+                    <label>Préstamo — Asignación actual: ${asignacionActual || '-'}</label>
+                    <select id="selectAsignacion">
+                        ${asignaciones.map(a => `<option value="${a}" ${a === asignacionActual ? 'selected' : ''}>${a}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-row">
+                    <button onclick="guardarPrestamo()">Confirmar préstamo</button>
+                </div>
+                <div class="msg" id="prestamoMsg"></div>
+
                 <div class="form-row">
                     <label>Historial</label>
                     ${historialHtml}
@@ -534,6 +561,40 @@
 
             estadoElegido = p.operativo ? 'OPERATIVO' : 'FUERA DE SERVICIO';
             document.getElementById('filaMotivo').classList.toggle('hidden', estadoElegido !== 'FUERA DE SERVICIO');
+        }
+
+        async function guardarPrestamo() {
+            const destino = document.getElementById('selectAsignacion').value;
+            const msgEl = document.getElementById('prestamoMsg');
+            const origen = vehiculoSeleccionado.asignacion;
+            if (destino === origen) {
+                msgEl.className = 'msg error';
+                msgEl.textContent = 'Elegí una asignación distinta a la actual';
+                return;
+            }
+            try {
+                const r = await fetch('/api/admin-update-prestamo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, numero: vehiculoSeleccionado.numero, asignacion_destino: destino, asignacion_origen: origen })
+                });
+                const data = await r.json();
+                if (!r.ok) {
+                    msgEl.className = 'msg error';
+                    msgEl.textContent = data.error || 'Error al guardar';
+                    return;
+                }
+                vehiculoSeleccionado.asignacion = destino;
+                vehiculoSeleccionado.en_prestamo = true;
+                if (!vehiculoSeleccionado.asignacion_original) vehiculoSeleccionado.asignacion_original = origen;
+                vehiculoSeleccionado.historial = data.historial;
+                renderDetalleAdmin();
+                document.getElementById('prestamoMsg').className = 'msg ok';
+                document.getElementById('prestamoMsg').textContent = 'Préstamo guardado correctamente';
+            } catch (e) {
+                msgEl.className = 'msg error';
+                msgEl.textContent = 'Error de conexión';
+            }
         }
 
         let estadoElegido = null;

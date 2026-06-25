@@ -27,6 +27,7 @@ export default async function handler(req, res) {
     if (!overrides[numero].historial) overrides[numero].historial = [];
 
     const entrada = {
+      tipo: 'estado',
       fecha: new Date().toISOString(),
       estado,
       motivo: estado === 'FUERA DE SERVICIO' ? motivo : null,
