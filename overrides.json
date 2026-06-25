@@ -49,5 +49,20 @@
     "actualizado": "2026-06-25T14:36:31.244Z",
     "legajo": "30925",
     "asignacion_actual": "DIR. PATRULLAS"
+  },
+  "A025SKA": {
+    "historial": [
+      {
+        "tipo": "estado",
+        "fecha": "2026-06-25T19:37:01.687Z",
+        "estado": "FUERA DE SERVICIO",
+        "motivo": "CAMARAS FUERA DE SERVICIO",
+        "legajo": "28660"
+      }
+    ],
+    "estado_actual": "FUERA DE SERVICIO",
+    "motivo": "CAMARAS FUERA DE SERVICIO",
+    "actualizado": "2026-06-25T19:37:01.687Z",
+    "legajo": "28660"
   }
 }
