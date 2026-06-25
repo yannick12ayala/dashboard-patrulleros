@@ -193,6 +193,25 @@
             letter-spacing: 0.5px;
             border-radius: 999px;
         }
+
+        .vehiculo-imagen {
+            background: linear-gradient(180deg, #0e1830, #0a1220);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            min-height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 18px;
+            padding: 10px;
+        }
+        .vehiculo-imagen img,
+        .vehiculo-imagen svg {
+            width: 100%;
+            max-width: 280px;
+            display: block;
+        }
         .estado-badge.operativo { background: var(--success-bg); color: var(--success); }
         .estado-badge.no-operativo { background: var(--danger-bg); color: var(--danger); }
 
@@ -303,6 +322,7 @@
         </div>
     </div>
 
+    <script src="vehiculo-visual.js"></script>
     <script>
         let token = sessionStorage.getItem('admin_token') || null;
         let legajoCheckActual = null;
@@ -478,11 +498,15 @@
                     </div>
                 `).join('');
 
+            const visual = generarVisualVehiculo(p);
+
             det.innerHTML = `
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
                     <h3 style="font-size:1.1em;">${p.numero}</h3>
                     <span class="estado-badge ${p.operativo ? 'operativo' : 'no-operativo'}">${p.operativo ? '✓ OPERATIVO' : '✗ FUERA DE SERVICIO'}</span>
                 </div>
+
+                <div class="vehiculo-imagen">${visual.html}</div>
 
                 <label>Cambiar estado a:</label>
                 <div class="estado-toggle">
