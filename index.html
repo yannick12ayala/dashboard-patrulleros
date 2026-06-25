@@ -1,7 +1,4 @@
 <!DOCTYPE html>
-<!-- redeploy-trigger-5 -->
-<!-- redeploy-trigger-4 -->
-<!-- redeploy-trigger-3 -->
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -262,6 +259,10 @@
             margin-bottom: 32px;
         }
 
+        .main-content-3col {
+            grid-template-columns: 1fr 1fr 1.2fr;
+        }
+
         @media (max-width: 1024px) {
             .main-content { grid-template-columns: 1fr; }
         }
@@ -299,6 +300,11 @@
             background: var(--danger-bg);
             padding: 3px 10px;
             border-radius: 999px;
+        }
+
+        .badge-count-azul {
+            color: var(--accent);
+            background: rgba(59,130,246,0.12);
         }
 
         .search-box {
@@ -725,7 +731,18 @@
         </div>
 
         <!-- Contenido Principal -->
-        <div class="main-content">
+        <div class="main-content main-content-3col">
+            <!-- Lista Todos los Patrulleros -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>🚓 Todos los Patrulleros</h2>
+                    <span class="badge-count badge-count-azul" id="todosBadge">0</span>
+                </div>
+                <div class="lista-patrulleros" id="listaTodos">
+                    <div class="placeholder">Cargando datos...</div>
+                </div>
+            </div>
+
             <!-- Lista Patrulleros No Operativos -->
             <div class="section">
                 <div class="section-header">
@@ -877,8 +894,30 @@
             document.getElementById('porcentajeOperativo').textContent = porcentaje + '%';
 
             actualizarKpisSistemas(filtrados);
+            actualizarListaTodos(filtrados);
             actualizarListaPatrulleros(filtrados);
             actualizarGraficos(filtrados);
+        }
+
+        function actualizarListaTodos(filtrados) {
+            const lista = document.getElementById('listaTodos');
+            document.getElementById('todosBadge').textContent = filtrados.length;
+
+            if (filtrados.length === 0) {
+                lista.innerHTML = '<div class="placeholder">No hay patrulleros para mostrar</div>';
+                return;
+            }
+
+            lista.innerHTML = filtrados.map((p) => `
+                <div class="patrullero-item ${p.operativo ? 'operativo' : ''}" onclick="mostrarDetalle(${datosGlobal.patrulleros.indexOf(p)}, this)">
+                    <div class="patrullero-numero">${p.numero}</div>
+                    <div class="patrullero-info">
+                        <strong>Tipo:</strong> ${p.tipo || '-'} &nbsp;·&nbsp;
+                        <strong>Area:</strong> ${p.area || '-'}<br>
+                        <strong>Estado:</strong> ${p.estado || '-'}
+                    </div>
+                </div>
+            `).join('');
         }
 
         function contarCamaras(p) {
