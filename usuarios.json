@@ -25,8 +25,8 @@
   },
   {
     "legajo": "28660",
-    "hash": null,
-    "salt": null,
-    "activado": false
+    "hash": "287242c2d1cd64d5a9732f96c84d71e325b9f7fe57ab9b199d096a4a516180119ca4f627e7c05afedbc5fd48d01b577adca9d417dab6da95729eb96c55f550ae",
+    "salt": "e647b6005fe880584718355ed8864b54",
+    "activado": true
   }
 ]
