@@ -16,6 +16,13 @@
   "A134WQT": {
     "historial": [
       {
+        "tipo": "estado",
+        "fecha": "2026-06-25T14:36:31.244Z",
+        "estado": "OPERATIVO",
+        "motivo": null,
+        "legajo": "30925"
+      },
+      {
         "tipo": "prestamo",
         "fecha": "2026-06-25T14:36:07.329Z",
         "asignacion_origen": "DIR. PATRULLAS",
@@ -30,9 +37,9 @@
         "legajo": "30925"
       }
     ],
-    "estado_actual": "FUERA DE SERVICIO",
-    "motivo": "SINIESTRO",
-    "actualizado": "2026-06-25T14:35:30.307Z",
+    "estado_actual": "OPERATIVO",
+    "motivo": null,
+    "actualizado": "2026-06-25T14:36:31.244Z",
     "legajo": "30925",
     "asignacion_actual": "DIR. LOGÍSTICA"
   }
