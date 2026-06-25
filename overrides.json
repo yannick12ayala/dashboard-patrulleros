@@ -1,1 +1,16 @@
-{}
+{
+  "A134WQS": {
+    "historial": [
+      {
+        "fecha": "2026-06-25T12:30:49.165Z",
+        "estado": "FUERA DE SERVICIO",
+        "motivo": "FALLA MECANICA",
+        "legajo": "30925"
+      }
+    ],
+    "estado_actual": "FUERA DE SERVICIO",
+    "motivo": "FALLA MECANICA",
+    "actualizado": "2026-06-25T12:30:49.165Z",
+    "legajo": "30925"
+  }
+}
