@@ -12,5 +12,20 @@
     "motivo": "FALLA MECANICA",
     "actualizado": "2026-06-25T12:30:49.165Z",
     "legajo": "30925"
+  },
+  "A134WQT": {
+    "historial": [
+      {
+        "tipo": "estado",
+        "fecha": "2026-06-25T14:35:30.307Z",
+        "estado": "FUERA DE SERVICIO",
+        "motivo": "SINIESTRO",
+        "legajo": "30925"
+      }
+    ],
+    "estado_actual": "FUERA DE SERVICIO",
+    "motivo": "SINIESTRO",
+    "actualizado": "2026-06-25T14:35:30.307Z",
+    "legajo": "30925"
   }
 }
