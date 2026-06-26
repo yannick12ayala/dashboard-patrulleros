@@ -42,5 +42,20 @@
     "motivo": null,
     "actualizado": "2026-06-26T20:55:35.366Z",
     "legajo": "28660"
+  },
+  "A168KEJ": {
+    "historial": [
+      {
+        "tipo": "estado",
+        "fecha": "2026-06-26T21:42:48.505Z",
+        "estado": "FUERA DE SERVICIO",
+        "motivo": "FALLA MECANICA",
+        "legajo": "30925"
+      }
+    ],
+    "estado_actual": "FUERA DE SERVICIO",
+    "motivo": "FALLA MECANICA",
+    "actualizado": "2026-06-26T21:42:48.505Z",
+    "legajo": "30925"
   }
 }
