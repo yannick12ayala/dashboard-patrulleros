@@ -47,15 +47,22 @@
     "historial": [
       {
         "tipo": "estado",
+        "fecha": "2026-06-26T21:43:13.752Z",
+        "estado": "OPERATIVO",
+        "motivo": null,
+        "legajo": "30925"
+      },
+      {
+        "tipo": "estado",
         "fecha": "2026-06-26T21:42:48.505Z",
         "estado": "FUERA DE SERVICIO",
         "motivo": "FALLA MECANICA",
         "legajo": "30925"
       }
     ],
-    "estado_actual": "FUERA DE SERVICIO",
-    "motivo": "FALLA MECANICA",
-    "actualizado": "2026-06-26T21:42:48.505Z",
+    "estado_actual": "OPERATIVO",
+    "motivo": null,
+    "actualizado": "2026-06-26T21:43:13.752Z",
     "legajo": "30925"
   }
 }
