@@ -2,14 +2,23 @@ let lastData = null;
 let lastFetch = 0;
 const CACHE_TIME = 15000;
 
+function estadoSistemaGps(valor) {
+  const v = String(valor || '').toUpperCase().trim();
+  if (v.includes('REPORTANDO')) return 'ok';
+  if (v === 'SIN GPS' || v === '') return 'no_asignado';
+  return 'falla';
+}
+
 function calcularFallas(p) {
-  const strix = String(p.strix || '').toUpperCase();
-  const soflex = String(p.soflex || '').toUpperCase();
-  const strixOk = strix.includes('REPORTANDO');
-  const soflexOk = soflex.includes('REPORTANDO');
-  const gpsOk = strixOk || soflexOk;
-  p.strix_problema = !strixOk;
-  p.soflex_problema = !soflexOk;
+  const strixEstado = estadoSistemaGps(p.strix);
+  const soflexEstado = estadoSistemaGps(p.soflex);
+  p.strix_problema = strixEstado === 'falla';
+  p.soflex_problema = soflexEstado === 'falla';
+
+  let gpsEstado;
+  if (strixEstado === 'ok' || soflexEstado === 'ok') gpsEstado = 'ok';
+  else if (strixEstado === 'no_asignado' && soflexEstado === 'no_asignado') gpsEstado = 'no_asignado';
+  else gpsEstado = 'falla';
 
   const tieneRadio = String(p.radio_base || '').trim() !== '';
   const estadoRadio = String(p.estado_radio || '').toUpperCase().trim();
@@ -26,7 +35,7 @@ function calcularFallas(p) {
   const balizaEstado = !tieneBaliza ? 'no_asignado' : (estadoBaliza === 'F/S' ? 'falla' : 'ok');
 
   return {
-    gps: gpsOk ? 'ok' : 'falla',
+    gps: gpsEstado,
     radio_base: radioEstado,
     camaras: camarasEstado,
     baliza: balizaEstado
