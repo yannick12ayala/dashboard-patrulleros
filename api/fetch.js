@@ -5,7 +5,11 @@ const CACHE_TIME = 15000;
 function calcularFallas(p) {
   const strix = String(p.strix || '').toUpperCase();
   const soflex = String(p.soflex || '').toUpperCase();
-  const gpsOk = strix.includes('REPORTANDO') || soflex.includes('REPORTANDO');
+  const strixOk = strix.includes('REPORTANDO');
+  const soflexOk = soflex.includes('REPORTANDO');
+  const gpsOk = strixOk || soflexOk;
+  p.strix_problema = !strixOk;
+  p.soflex_problema = !soflexOk;
 
   const tieneRadio = String(p.radio_base || '').trim() !== '';
   const estadoRadio = String(p.estado_radio || '').toUpperCase().trim();

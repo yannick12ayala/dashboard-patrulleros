@@ -743,6 +743,40 @@
             </div>
         </div>
 
+        <div class="grafico-container" style="margin-bottom:32px;">
+            <h3>GPS — Problemas por Sistema y Estado</h3>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px;">
+                <div class="kpi-card kpi-sistema">
+                    <div>
+                        <div class="kpi-label">E/S · STRIX con falla</div>
+                        <div class="kpi-value" id="esStrixFalla" style="color:var(--danger);">0</div>
+                    </div>
+                    <div class="kpi-icon">🛰️</div>
+                </div>
+                <div class="kpi-card kpi-sistema">
+                    <div>
+                        <div class="kpi-label">E/S · SOFLEX con falla</div>
+                        <div class="kpi-value" id="esSoflexFalla" style="color:var(--danger);">0</div>
+                    </div>
+                    <div class="kpi-icon">🛰️</div>
+                </div>
+                <div class="kpi-card kpi-sistema">
+                    <div>
+                        <div class="kpi-label">F/S · STRIX con falla</div>
+                        <div class="kpi-value" id="fsStrixFalla" style="color:var(--text-faint);">0</div>
+                    </div>
+                    <div class="kpi-icon">🛰️</div>
+                </div>
+                <div class="kpi-card kpi-sistema">
+                    <div>
+                        <div class="kpi-label">F/S · SOFLEX con falla</div>
+                        <div class="kpi-value" id="fsSoflexFalla" style="color:var(--text-faint);">0</div>
+                    </div>
+                    <div class="kpi-icon">🛰️</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Contenido Principal -->
         <div class="main-content main-content-3col">
             <!-- Lista Todos los Patrulleros -->
@@ -959,6 +993,11 @@
             document.getElementById('camarasFalla').textContent = sistemas.camaras.falla;
             document.getElementById('balizaOk').textContent = sistemas.baliza.ok;
             document.getElementById('balizaFalla').textContent = sistemas.baliza.falla;
+
+            document.getElementById('esStrixFalla').textContent = filtrados.filter(p => p.operativo && p.strix_problema).length;
+            document.getElementById('esSoflexFalla').textContent = filtrados.filter(p => p.operativo && p.soflex_problema).length;
+            document.getElementById('fsStrixFalla').textContent = filtrados.filter(p => !p.operativo && p.strix_problema).length;
+            document.getElementById('fsSoflexFalla').textContent = filtrados.filter(p => !p.operativo && p.soflex_problema).length;
         }
 
         function actualizarListaPatrulleros(filtrados) {
