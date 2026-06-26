@@ -16,9 +16,9 @@ function calcularFallas(p) {
   p.soflex_problema = soflexEstado === 'falla';
 
   let gpsEstado;
-  if (strixEstado === 'ok' || soflexEstado === 'ok') gpsEstado = 'ok';
+  if (strixEstado === 'falla' || soflexEstado === 'falla') gpsEstado = 'falla';
   else if (strixEstado === 'no_asignado' && soflexEstado === 'no_asignado') gpsEstado = 'no_asignado';
-  else gpsEstado = 'falla';
+  else gpsEstado = 'ok';
 
   const tieneRadio = String(p.radio_base || '').trim() !== '';
   const estadoRadio = String(p.estado_radio || '').toUpperCase().trim();
