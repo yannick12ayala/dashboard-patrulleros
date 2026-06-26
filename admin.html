@@ -492,6 +492,22 @@
             const historialHtml = (p.historial || []).length === 0
                 ? '<div class="placeholder" style="padding:16px;">Sin cambios registrados</div>'
                 : p.historial.map(h => {
+                    if (h.tipo === 'empleado_asignado') {
+                        return `
+                            <div class="historial-item">
+                                <div class="fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Admin legajo ${h.legajo_admin}</div>
+                                <div><span class="estado-tag" style="color:var(--accent);">EMPLEADO ASIGNADO</span> ${h.nombre} (legajo ${h.legajo})</div>
+                            </div>
+                        `;
+                    }
+                    if (h.tipo === 'empleado_desasignado') {
+                        return `
+                            <div class="historial-item">
+                                <div class="fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Admin legajo ${h.legajo_admin}</div>
+                                <div><span class="estado-tag" style="color:var(--text-faint);">EMPLEADO DESASIGNADO</span> ${h.nombre} (legajo ${h.legajo}) · ${h.dias} día${h.dias === 1 ? '' : 's'} de uso</div>
+                            </div>
+                        `;
+                    }
                     const esPrestamo = h.tipo === 'prestamo' || (!h.tipo && h.asignacion_destino);
                     if (esPrestamo) {
                         return `
@@ -513,6 +529,15 @@
 
             const asignaciones = [...new Set((datosGlobal.patrulleros || []).map(v => (v.asignacion || '').trim()).filter(Boolean))].sort();
             const asignacionActual = (p.asignacion || '').trim();
+
+            const diasPorEmpleado = {};
+            (p.historial || []).filter(h => h.tipo === 'empleado_desasignado').forEach(h => {
+                const key = `${h.legajo} — ${h.nombre}`;
+                diasPorEmpleado[key] = (diasPorEmpleado[key] || 0) + h.dias;
+            });
+            const resumenEmpleadosHtml = Object.keys(diasPorEmpleado).length === 0
+                ? ''
+                : `<div class="form-row"><label>Total de días por empleado</label>${Object.entries(diasPorEmpleado).map(([k, d]) => `<div class="historial-item">${k}: <strong>${d} día${d === 1 ? '' : 's'}</strong></div>`).join('')}</div>`;
 
             det.innerHTML = `
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
@@ -553,6 +578,19 @@
                 </div>
                 <div class="msg" id="prestamoMsg"></div>
 
+                <div class="form-row" style="border-top:1px solid var(--border); padding-top:18px; margin-top:22px;">
+                    <label>Empleado Asignado</label>
+                    ${p.empleado_actual
+                        ? `<div class="historial-item">${p.empleado_actual.nombre} (legajo ${p.empleado_actual.legajo})<br>Desde: ${new Date(p.empleado_actual.fecha_inicio).toLocaleString('es-AR')}</div>
+                           <button onclick="desasignarEmpleado()" style="margin-top:10px;">Desasignar (finalizar uso)</button>`
+                        : `<input type="text" id="inputLegajoEmpleado" placeholder="Legajo del empleado" style="margin-bottom:10px;">
+                           <input type="text" id="inputNombreEmpleado" placeholder="Nombre del empleado">
+                           <button onclick="asignarEmpleado()" style="margin-top:10px;">Asignar empleado</button>`
+                    }
+                </div>
+                <div class="msg" id="empleadoMsg"></div>
+                ${resumenEmpleadosHtml}
+
                 <div class="form-row">
                     <label>Historial</label>
                     ${historialHtml}
@@ -591,6 +629,63 @@
                 renderDetalleAdmin();
                 document.getElementById('prestamoMsg').className = 'msg ok';
                 document.getElementById('prestamoMsg').textContent = 'Préstamo guardado correctamente';
+            } catch (e) {
+                msgEl.className = 'msg error';
+                msgEl.textContent = 'Error de conexión';
+            }
+        }
+
+        async function asignarEmpleado() {
+            const legajo = document.getElementById('inputLegajoEmpleado').value.trim();
+            const nombre = document.getElementById('inputNombreEmpleado').value.trim();
+            const msgEl = document.getElementById('empleadoMsg');
+            if (!legajo || !nombre) {
+                msgEl.className = 'msg error';
+                msgEl.textContent = 'Completá legajo y nombre';
+                return;
+            }
+            try {
+                const r = await fetch('/api/admin-asignar-empleado', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, numero: vehiculoSeleccionado.numero, legajo, nombre })
+                });
+                const data = await r.json();
+                if (!r.ok) {
+                    msgEl.className = 'msg error';
+                    msgEl.textContent = data.error || 'Error al asignar';
+                    return;
+                }
+                vehiculoSeleccionado.empleado_actual = data.empleado_actual;
+                vehiculoSeleccionado.historial = data.historial;
+                renderDetalleAdmin();
+                document.getElementById('empleadoMsg').className = 'msg ok';
+                document.getElementById('empleadoMsg').textContent = 'Empleado asignado correctamente';
+            } catch (e) {
+                msgEl.className = 'msg error';
+                msgEl.textContent = 'Error de conexión';
+            }
+        }
+
+        async function desasignarEmpleado() {
+            const msgEl = document.getElementById('empleadoMsg');
+            try {
+                const r = await fetch('/api/admin-desasignar-empleado', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, numero: vehiculoSeleccionado.numero })
+                });
+                const data = await r.json();
+                if (!r.ok) {
+                    msgEl.className = 'msg error';
+                    msgEl.textContent = data.error || 'Error al desasignar';
+                    return;
+                }
+                vehiculoSeleccionado.empleado_actual = null;
+                vehiculoSeleccionado.historial = data.historial;
+                renderDetalleAdmin();
+                document.getElementById('empleadoMsg').className = 'msg ok';
+                document.getElementById('empleadoMsg').textContent = `Empleado desasignado — ${data.dias} día${data.dias === 1 ? '' : 's'} de uso registrados`;
             } catch (e) {
                 msgEl.className = 'msg error';
                 msgEl.textContent = 'Error de conexión';

@@ -1058,6 +1058,7 @@
                         <div class="info-row"><span class="label">N° Chasis / VIN</span><span class="value">${patrullero.serie || '-'}</span></div>
                         <div class="info-row"><span class="label">GPS (AVL)</span><span class="value">${patrullero.avl || '-'}</span></div>
                         ${patrullero.estado_manual && patrullero.motivo_fuera_servicio ? `<div class="info-row" style="grid-column:1/-1;"><span class="label">Motivo Fuera de Servicio</span><span class="value">${patrullero.motivo_fuera_servicio}</span></div>` : ''}
+                        <div class="info-row" style="grid-column:1/-1;"><span class="label">Empleado Asignado</span><span class="value">${patrullero.empleado_actual ? `${patrullero.empleado_actual.nombre} (legajo ${patrullero.empleado_actual.legajo})` : 'Sin empleado asignado'}</span></div>
                     </div>
 
                     ${generarHistorialHtml(patrullero.historial)}
@@ -1068,6 +1069,22 @@
         function generarHistorialHtml(historial) {
             if (!historial || historial.length === 0) return '';
             const items = historial.map(h => {
+                if (h.tipo === 'empleado_asignado') {
+                    return `
+                        <div class="historial-item">
+                            <span class="historial-fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Admin legajo ${h.legajo_admin}</span>
+                            <span class="historial-estado" style="color:var(--accent);">EMPLEADO ASIGNADO</span> ${h.nombre} (legajo ${h.legajo})
+                        </div>
+                    `;
+                }
+                if (h.tipo === 'empleado_desasignado') {
+                    return `
+                        <div class="historial-item">
+                            <span class="historial-fecha">${new Date(h.fecha).toLocaleString('es-AR')} — Admin legajo ${h.legajo_admin}</span>
+                            <span class="historial-estado" style="color:var(--text-faint);">EMPLEADO DESASIGNADO</span> ${h.nombre} (legajo ${h.legajo}) · ${h.dias} día${h.dias === 1 ? '' : 's'} de uso
+                        </div>
+                    `;
+                }
                 const esPrestamo = h.tipo === 'prestamo' || (!h.tipo && h.asignacion_destino);
                 if (esPrestamo) {
                     return `

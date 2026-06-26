@@ -1,7 +1,4 @@
 let lastData = null;
-// redeploy-trigger-final
-// fix-confirm-2
-// fix-confirm-3
 let lastFetch = 0;
 const CACHE_TIME = 15000;
 
@@ -87,10 +84,12 @@ export default async function handler(req, res) {
       p.motivo_fuera_servicio = null;
       p.historial = [];
       p.estado_manual = false;
+      p.empleado_actual = null;
 
       const ov = overrides[p.numero];
       if (ov) {
         p.historial = ov.historial || [];
+        p.empleado_actual = ov.empleado_actual || null;
         if (ov.estado_actual) {
           p.operativo = ov.estado_actual === 'OPERATIVO';
           p.motivo_fuera_servicio = ov.motivo || null;
