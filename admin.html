@@ -183,6 +183,34 @@
         .vehiculo-numero { font-weight: 700; font-size: 0.95em; margin-bottom: 3px; }
         .vehiculo-sub { font-size: 0.78em; color: var(--text-dim); }
 
+        .no-autorizados-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+        }
+        .no-autorizado-card {
+            background: var(--bg);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+        }
+        .no-autorizado-card:hover { border-color: #ff6b6b; }
+        .no-autorizado-card .foto-mini {
+            width: 100%;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            background: linear-gradient(180deg, #0e1830, #0a1220);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .no-autorizado-card .foto-mini img,
+        .no-autorizado-card .foto-mini svg { width: 88%; display: block; }
+        .no-autorizado-card .falla-tag { color: var(--danger); font-weight: 700; }
+
         .estado-badge {
             display: inline-flex;
             align-items: center;
@@ -319,6 +347,13 @@
                     </div>
                 </div>
             </div>
+
+            <div class="section" style="margin-top:20px;">
+                <h2>🚫 Vehículos No Autorizados a Patrullar</h2>
+                <div id="listaNoAutorizadosAdmin" class="no-autorizados-grid">
+                    <div class="placeholder">Cargando...</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -434,14 +469,36 @@
             cargarVehiculos();
         }
 
+        const MOTIVOS_NO_PATRULLAR = ['FALLA MECANICA', 'SINIESTRO', 'CAMARAS FUERA DE SERVICIO', 'RADIO BASE FUERA DE SERVICIO'];
+
         async function cargarVehiculos() {
             try {
                 const r = await fetch('/api/fetch');
                 datosGlobal = await r.json();
                 renderListaVehiculos(datosGlobal.patrulleros);
+                renderNoAutorizados();
             } catch (e) {
                 document.getElementById('listaVehiculos').innerHTML = '<div class="placeholder">Error al cargar datos</div>';
             }
+        }
+
+        function renderNoAutorizados() {
+            const cont = document.getElementById('listaNoAutorizadosAdmin');
+            const noAutorizados = datosGlobal.patrulleros.filter(p => p.estado_manual && MOTIVOS_NO_PATRULLAR.includes(p.motivo_fuera_servicio));
+            if (noAutorizados.length === 0) {
+                cont.innerHTML = '<div class="placeholder">No hay vehículos no autorizados a patrullar</div>';
+                return;
+            }
+            cont.innerHTML = noAutorizados.map(p => {
+                const visual = generarVisualVehiculo(p);
+                return `
+                    <div class="no-autorizado-card" onclick="seleccionarVehiculo('${p.numero}')">
+                        <div class="foto-mini">${visual.html}</div>
+                        <div class="vehiculo-numero">${p.numero}</div>
+                        <div class="vehiculo-sub"><strong>Tipo:</strong> ${p.tipo || '-'}<br><span class="falla-tag">${p.motivo_fuera_servicio}</span></div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function renderListaVehiculos(lista) {
@@ -721,8 +778,10 @@
 
                 vehiculoSeleccionado.operativo = estadoElegido === 'OPERATIVO';
                 vehiculoSeleccionado.motivo_fuera_servicio = motivo;
+                vehiculoSeleccionado.estado_manual = true;
                 vehiculoSeleccionado.historial = data.historial;
                 renderDetalleAdmin();
+                renderNoAutorizados();
                 document.getElementById('adminMsg').className = 'msg ok';
                 document.getElementById('adminMsg').textContent = 'Cambio guardado correctamente';
             } catch (e) {

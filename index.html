@@ -378,6 +378,46 @@
         .lista-patrulleros::-webkit-scrollbar-thumb,
         .search-results::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
 
+        .no-autorizados-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .no-autorizado-card {
+            background: var(--bg);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: border-color 0.15s ease;
+        }
+
+        .no-autorizado-card:hover { border-color: #ff6b6b; }
+
+        .no-autorizado-card .foto-mini {
+            width: 100%;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            background: linear-gradient(180deg, #0e1830, #0a1220);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .no-autorizado-card .foto-mini img,
+        .no-autorizado-card .foto-mini svg {
+            width: 88%;
+            display: block;
+        }
+
+        .no-autorizado-card .falla-tag {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
         .patrullero-item {
             padding: 13px 14px;
             margin-bottom: 8px;
@@ -818,6 +858,17 @@
             </div>
         </div>
 
+        <!-- Vehiculos No Autorizados a Patrullar -->
+        <div class="section" style="margin-bottom:32px;">
+            <div class="section-header">
+                <h2>🚫 Vehículos No Autorizados a Patrullar</h2>
+                <span class="badge-count" id="noAutorizadosBadge">0</span>
+            </div>
+            <div id="listaNoAutorizados" class="no-autorizados-grid">
+                <div class="placeholder">Cargando datos...</div>
+            </div>
+        </div>
+
         <!-- Graficos -->
         <div class="graficos graficos-full">
             <div class="grafico-container">
@@ -937,7 +988,36 @@
             actualizarKpisSistemas(filtrados);
             actualizarListaTodos(filtrados);
             actualizarListaPatrulleros(filtrados);
+            actualizarListaNoAutorizados(filtrados);
             actualizarGraficos(filtrados);
+        }
+
+        const MOTIVOS_NO_PATRULLAR = ['FALLA MECANICA', 'SINIESTRO', 'CAMARAS FUERA DE SERVICIO', 'RADIO BASE FUERA DE SERVICIO'];
+
+        function actualizarListaNoAutorizados(filtrados) {
+            const lista = document.getElementById('listaNoAutorizados');
+            const noAutorizados = filtrados.filter(p => p.estado_manual && MOTIVOS_NO_PATRULLAR.includes(p.motivo_fuera_servicio));
+            document.getElementById('noAutorizadosBadge').textContent = noAutorizados.length;
+
+            if (noAutorizados.length === 0) {
+                lista.innerHTML = '<div class="placeholder">No hay vehículos no autorizados a patrullar</div>';
+                return;
+            }
+
+            lista.innerHTML = noAutorizados.map(p => {
+                const visual = generarVisualVehiculo(p);
+                const idx = datosGlobal.patrulleros.indexOf(p);
+                return `
+                    <div class="no-autorizado-card" onclick="mostrarDetalle(${idx}, null)">
+                        <div class="foto-mini">${visual.html}</div>
+                        <div class="patrullero-numero">${p.numero}</div>
+                        <div class="patrullero-info">
+                            <strong>Tipo:</strong> ${p.tipo || '-'}<br>
+                            <strong>Falla:</strong> <span class="falla-tag">${p.motivo_fuera_servicio}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function actualizarListaTodos(filtrados) {
