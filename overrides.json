@@ -46,6 +46,13 @@
   "A168KEJ": {
     "historial": [
       {
+        "tipo": "prestamo",
+        "fecha": "2026-06-26T21:48:48.864Z",
+        "asignacion_origen": "DIR. PATRULLAS",
+        "asignacion_destino": "DIR. EDIF PÚBLICOS",
+        "legajo": "30925"
+      },
+      {
         "tipo": "estado",
         "fecha": "2026-06-26T21:43:27.462Z",
         "estado": "FUERA DE SERVICIO",
@@ -70,6 +77,7 @@
     "estado_actual": "FUERA DE SERVICIO",
     "motivo": "CAMARAS FUERA DE SERVICIO",
     "actualizado": "2026-06-26T21:43:27.462Z",
-    "legajo": "30925"
+    "legajo": "30925",
+    "asignacion_actual": "DIR. EDIF PÚBLICOS"
   }
 }
