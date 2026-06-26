@@ -13,5 +13,20 @@
     "motivo": "FALLA MECANICA",
     "actualizado": "2026-06-26T20:52:00.855Z",
     "legajo": "28660"
+  },
+  "AD079NX": {
+    "historial": [
+      {
+        "tipo": "estado",
+        "fecha": "2026-06-26T20:54:11.796Z",
+        "estado": "FUERA DE SERVICIO",
+        "motivo": "CAMARAS FUERA DE SERVICIO",
+        "legajo": "28660"
+      }
+    ],
+    "estado_actual": "FUERA DE SERVICIO",
+    "motivo": "CAMARAS FUERA DE SERVICIO",
+    "actualizado": "2026-06-26T20:54:11.796Z",
+    "legajo": "28660"
   }
 }
