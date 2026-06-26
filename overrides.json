@@ -1,1 +1,17 @@
-{}
+{
+  "A025SJZ": {
+    "historial": [
+      {
+        "tipo": "estado",
+        "fecha": "2026-06-26T20:52:00.855Z",
+        "estado": "FUERA DE SERVICIO",
+        "motivo": "FALLA MECANICA",
+        "legajo": "28660"
+      }
+    ],
+    "estado_actual": "FUERA DE SERVICIO",
+    "motivo": "FALLA MECANICA",
+    "actualizado": "2026-06-26T20:52:00.855Z",
+    "legajo": "28660"
+  }
+}
