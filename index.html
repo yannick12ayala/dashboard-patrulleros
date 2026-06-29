@@ -251,6 +251,10 @@
         .kpi-doble .kpi-falla { color: var(--danger); }
         .kpi-doble .kpi-sep { color: var(--text-faint); font-size: 0.6em; font-weight: 400; }
 
+        .kpi-clickeable { cursor: pointer; }
+        .kpi-clickeable:hover { border-color: var(--accent); }
+        .kpi-clickeable.activo { border-color: var(--accent); background: rgba(59,130,246,0.06); }
+
         /* ===== MAIN LAYOUT ===== */
         .main-content {
             display: grid;
@@ -838,28 +842,28 @@
         <div class="grafico-container" style="margin-bottom:32px;">
             <h3>GPS — Problemas por Sistema y Estado</h3>
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px;">
-                <div class="kpi-card kpi-sistema">
+                <div class="kpi-card kpi-sistema kpi-clickeable" onclick="mostrarVehiculosGps('es','strix_problema',this)">
                     <div>
                         <div class="kpi-label">E/S · STRIX con falla</div>
                         <div class="kpi-value" id="esStrixFalla" style="color:var(--danger);">0</div>
                     </div>
                     <div class="kpi-icon">🛰️</div>
                 </div>
-                <div class="kpi-card kpi-sistema">
+                <div class="kpi-card kpi-sistema kpi-clickeable" onclick="mostrarVehiculosGps('es','soflex_problema',this)">
                     <div>
                         <div class="kpi-label">E/S · SOFLEX con falla</div>
                         <div class="kpi-value" id="esSoflexFalla" style="color:var(--danger);">0</div>
                     </div>
                     <div class="kpi-icon">🛰️</div>
                 </div>
-                <div class="kpi-card kpi-sistema">
+                <div class="kpi-card kpi-sistema kpi-clickeable" onclick="mostrarVehiculosGps('fs','strix_problema',this)">
                     <div>
                         <div class="kpi-label">F/S · STRIX con falla</div>
                         <div class="kpi-value" id="fsStrixFalla" style="color:var(--text-faint);">0</div>
                     </div>
                     <div class="kpi-icon">🛰️</div>
                 </div>
-                <div class="kpi-card kpi-sistema">
+                <div class="kpi-card kpi-sistema kpi-clickeable" onclick="mostrarVehiculosGps('fs','soflex_problema',this)">
                     <div>
                         <div class="kpi-label">F/S · SOFLEX con falla</div>
                         <div class="kpi-value" id="fsSoflexFalla" style="color:var(--text-faint);">0</div>
@@ -867,6 +871,7 @@
                     <div class="kpi-icon">🛰️</div>
                 </div>
             </div>
+            <div id="resultadosGps" class="no-autorizados-grid" style="margin-top:18px;"></div>
         </div>
 
         <!-- Contenido Principal -->
@@ -1132,6 +1137,50 @@
             document.getElementById('fsSoflexFalla').textContent = filtrados.filter(p => !p.operativo && p.soflex_problema).length;
         }
 
+        let gpsFiltroActivo = null;
+
+        function mostrarVehiculosGps(estado, campo, el) {
+            const resultadosDiv = document.getElementById('resultadosGps');
+            const key = estado + '_' + campo;
+
+            document.querySelectorAll('.kpi-clickeable').forEach(c => c.classList.remove('activo'));
+
+            if (gpsFiltroActivo === key) {
+                gpsFiltroActivo = null;
+                resultadosDiv.innerHTML = '';
+                return;
+            }
+
+            gpsFiltroActivo = key;
+            el.classList.add('activo');
+
+            const filtrados = getPatrullerosFiltrados();
+            const esOperativo = estado === 'es';
+            const coincidencias = filtrados.filter(p => p.operativo === esOperativo && p[campo]);
+
+            if (coincidencias.length === 0) {
+                resultadosDiv.innerHTML = '<div class="placeholder">No hay vehículos con ese problema</div>';
+                return;
+            }
+
+            resultadosDiv.innerHTML = coincidencias.map(p => {
+                const visual = generarVisualVehiculo(p);
+                const idx = datosGlobal.patrulleros.indexOf(p);
+                const nombreSistema = campo === 'strix_problema' ? 'STRIX' : 'SOFLEX';
+                const valorCampo = campo === 'strix_problema' ? p.strix : p.soflex;
+                return `
+                    <div class="no-autorizado-card" onclick="mostrarDetalle(${idx}, null)">
+                        <div class="foto-mini">${visual.html}</div>
+                        <div class="patrullero-numero">${p.numero}</div>
+                        <div class="patrullero-info">
+                            <strong>Tipo:</strong> ${p.tipo || '-'}<br>
+                            <strong>${nombreSistema}:</strong> <span class="falla-tag">${valorCampo}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function actualizarListaPatrulleros(filtrados) {
             const lista = document.getElementById('listaPatrulleros');
             const noOperativos = filtrados.filter(p => !p.operativo);
@@ -1159,6 +1208,7 @@
 
             document.querySelectorAll('.patrullero-item').forEach(item => item.classList.remove('selected'));
             if (el) el.classList.add('selected');
+            else detalleDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
             const visualVehiculo = generarVisualVehiculo(patrullero);
             const diagrama = generarDiagrama(patrullero);
