@@ -267,6 +267,58 @@
             .main-content { grid-template-columns: 1fr; }
         }
 
+        /* ===== MOBILE ===== */
+        @media (max-width: 640px) {
+            .container { padding: 0 14px; }
+
+            header { padding: 20px 16px 16px; gap: 12px; }
+            .brand { gap: 12px; }
+            .brand-icon { width: 52px; height: 52px; }
+            .brand-text h1 { font-size: 1.2em; }
+            .status-pill { font-size: 0.74em; padding: 8px 12px; }
+
+            .filter-bar { margin-top: 16px; }
+            .filter-btn { font-size: 0.78em; padding: 7px 13px; }
+
+            .kpi-container { grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0 22px; }
+            .kpi-card { padding: 14px 14px; }
+            .kpi-value { font-size: 1.5em; }
+            .kpi-doble { font-size: 1.25em; }
+            .kpi-icon { width: 30px; height: 30px; font-size: 1em; }
+
+            .section { padding: 16px; }
+
+            .patrullero-diagrama {
+                aspect-ratio: unset;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+                padding: 4px 0 10px;
+            }
+            .patrullero-diagrama svg.conectores { display: none; }
+            .vehiculo-central {
+                position: static;
+                transform: none;
+                width: 58%;
+                max-width: 200px;
+                animation: none;
+            }
+            .vehiculo-central.foto { width: 68%; max-width: 240px; }
+            .callout {
+                position: static;
+                width: 100%;
+                max-width: 100%;
+                opacity: 1;
+                transform: none;
+                animation: none;
+            }
+
+            .info-grid { grid-template-columns: 1fr; }
+
+            .no-autorizados-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+        }
+
         .section {
             background: var(--bg-elevated);
             border: 1px solid var(--border);
