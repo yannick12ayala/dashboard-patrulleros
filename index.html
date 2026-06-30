@@ -958,6 +958,29 @@
                     <canvas id="graficoEquiposBase"></canvas>
                 </div>
             </div>
+            <div class="grafico-container">
+                <h3>Equipos de Radio Handy (<span id="equiposHandyTotal">0</span>)</h3>
+                <div class="kpi-container" style="margin: 0 0 20px;">
+                    <div class="kpi-card kpi-sistema">
+                        <div><div class="kpi-label">En Servicio</div><div class="kpi-value" id="handyEnServicio">0</div></div>
+                    </div>
+                    <div class="kpi-card kpi-sistema">
+                        <div><div class="kpi-label">Fuera de Servicio</div><div class="kpi-value" id="handyFueraServicio">0</div></div>
+                    </div>
+                    <div class="kpi-card kpi-sistema">
+                        <div><div class="kpi-label">Asignados</div><div class="kpi-value" id="handyAsignados">0</div></div>
+                    </div>
+                    <div class="kpi-card kpi-sistema">
+                        <div><div class="kpi-label">En Deposito</div><div class="kpi-value" id="handyEnDeposito">0</div></div>
+                    </div>
+                    <div class="kpi-card kpi-sistema">
+                        <div><div class="kpi-label">Extraviados</div><div class="kpi-value" id="handyExtraviados">0</div></div>
+                    </div>
+                </div>
+                <div style="height: 320px;">
+                    <canvas id="graficoEquiposHandy"></canvas>
+                </div>
+            </div>
         </div>
 
         <footer>Dashboard interno · Actualización automática vía Power Automate</footer>
@@ -1529,6 +1552,72 @@
             }
         };
 
+        const EQUIPOS_HANDY = {
+            total: 288,
+            enServicio: 276,
+            fueraDeServicio: 4,
+            asignados: 238,
+            enDeposito: 43,
+            extraviados: 3,
+            distribucion: {
+                'GUARDIA URBANA': 42,
+                'DEFENSA CIVIL': 9,
+                'TRÁNSITO': 20,
+                'CAPACITACIÓN': 9,
+                'DIRECCIÓN DE OPERACIONES': 3,
+                'ANALISIS DELICTUAL': 1,
+                'COVU': 69,
+                'SECRETARÍA (UNSE)': 1,
+                'MONITOREO': 8,
+                'ROCHA': 1,
+                'PIANE': 1,
+                'VILLA ROSA': 1,
+                'EDIFICIOS PUBLICOS': 22,
+                'EDIFICIOS PUBLICOS/SALUD': 22,
+                'PBA': 24,
+                'UPPL': 5
+            }
+        };
+
+        function inicializarEquiposHandy() {
+            const d = EQUIPOS_HANDY;
+            document.getElementById('equiposHandyTotal').textContent = d.total;
+            document.getElementById('handyEnServicio').textContent = d.enServicio;
+            document.getElementById('handyFueraServicio').textContent = d.fueraDeServicio;
+            document.getElementById('handyAsignados').textContent = d.asignados;
+            document.getElementById('handyEnDeposito').textContent = d.enDeposito;
+            document.getElementById('handyExtraviados').textContent = d.extraviados;
+
+            const labels = Object.keys(d.distribucion);
+            const valores = Object.values(d.distribucion);
+
+            const ctx = document.getElementById('graficoEquiposHandy').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Equipos asignados',
+                        data: valores,
+                        backgroundColor: '#3b82f6',
+                        borderWidth: 0,
+                        borderRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#5b6a85' }, grid: { color: '#1f2c44' } },
+                        x: { ticks: { color: '#8593ab', font: { size: 10 } }, grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
         function inicializarEquiposBase() {
             const d = EQUIPOS_BASE;
             document.getElementById('equiposBaseTotal').textContent = d.total;
@@ -1568,6 +1657,7 @@
         }
 
         inicializarEquiposBase();
+        inicializarEquiposHandy();
         cargarDatos();
     </script>
 </body>
