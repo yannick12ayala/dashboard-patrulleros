@@ -3,6 +3,13 @@
     "historial": [
       {
         "tipo": "estado",
+        "fecha": "2026-06-30T18:30:03.671Z",
+        "estado": "OPERATIVO",
+        "motivo": null,
+        "legajo": "30925"
+      },
+      {
+        "tipo": "estado",
         "fecha": "2026-06-30T18:28:37.518Z",
         "estado": "FUERA DE SERVICIO",
         "motivo": "RADIO BASE FUERA DE SERVICIO",
@@ -23,9 +30,9 @@
         "legajo": "28660"
       }
     ],
-    "estado_actual": "FUERA DE SERVICIO",
-    "motivo": "RADIO BASE FUERA DE SERVICIO",
-    "actualizado": "2026-06-30T18:28:37.518Z",
+    "estado_actual": "OPERATIVO",
+    "motivo": null,
+    "actualizado": "2026-06-30T18:30:03.671Z",
     "legajo": "30925"
   },
   "AD079NX": {
