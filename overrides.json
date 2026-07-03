@@ -100,5 +100,20 @@
     "actualizado": "2026-06-27T12:25:53.003Z",
     "legajo": "28660",
     "asignacion_actual": "DIR. EDIF PÚBLICOS"
+  },
+  "AB068EC": {
+    "historial": [
+      {
+        "tipo": "estado",
+        "fecha": "2026-07-03T18:19:46.885Z",
+        "estado": "FUERA DE SERVICIO",
+        "motivo": "FALLA MECANICA",
+        "legajo": "28660"
+      }
+    ],
+    "estado_actual": "FUERA DE SERVICIO",
+    "motivo": "FALLA MECANICA",
+    "actualizado": "2026-07-03T18:19:46.885Z",
+    "legajo": "28660"
   }
 }
